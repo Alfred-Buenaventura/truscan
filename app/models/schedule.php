@@ -7,113 +7,126 @@ class Schedule {
     public function __construct() {
         $this->db = new Database();
     }
-
-    // --- CRUD OPERATIONS ---
-    public function add($userId, $day, $subject, $startTime, $endTime, $room) {
-        $sql = "INSERT INTO class_schedules (user_id, day_of_week, subject, start_time, end_time, room, status) VALUES (?, ?, ?, ?, ?, ?, 'pending')";
-        return $this->db->query($sql, [$userId, $day, $subject, $startTime, $endTime, $room], "isssss");
-    }
-
-    public function update($id, $userId, $day, $subject, $startTime, $endTime, $room, $isAdmin) {
-        $sql = "UPDATE class_schedules SET day_of_week=?, subject=?, start_time=?, end_time=?, room=?, status='pending' WHERE id=?";
-        $params = [$day, $subject, $startTime, $endTime, $room, $id];
-        $types = "sssssi";
-
-        if (!$isAdmin) {
-            $sql .= " AND user_id=?";
-            $params[] = $userId;
-            $types .= "i";
-        }
-        
-        return $this->db->query($sql, $params, $types);
-    }
-
-    public function delete($id, $userId, $isAdmin) {
-        $sql = "DELETE FROM class_schedules WHERE id=?";
-        $params = [$id];
-        $types = "i";
-
-        if (!$isAdmin) {
-            $sql .= " AND user_id=?";
-            $params[] = $userId;
-            $types .= "i";
-        }
-        return $this->db->query($sql, $params, $types);
-    }
-
-    // --- APPROVAL WORKFLOW ---
-    public function setStatus($id, $status) {
-        $sql = "UPDATE class_schedules SET status=? WHERE id=?";
-        return $this->db->query($sql, [$status, $id], "si");
-    }
-
-    // --- FETCH METHODS ---
     
-    // Fetch Pending Schedules (Admin sees all, User sees own)
-    public function getPending($userId = null) {
-        $sql = "SELECT cs.*, u.first_name, u.last_name, u.faculty_id 
-                FROM class_schedules cs 
-                JOIN users u ON cs.user_id = u.id 
-                WHERE cs.status = 'pending'";
+    // --- NEW: UPDATE METHOD ---
+    public function update($id, $day, $subject, $start, $end, $room) {
+        $sql = "UPDATE class_schedules 
+                SET day_of_week = ?, subject = ?, start_time = ?, end_time = ?, room = ?
+                WHERE id = ?";
+        $stmt = $this->db->query($sql, [$day, $subject, $start, $end, $room, $id], "sssssi");
+        return $stmt->affected_rows > 0;
+    }
+    // --- END NEW METHOD ---
+
+    public function create($userId, $schedules, $isAdmin) {
+        $status = $isAdmin ? 'approved' : 'pending';
+        $sql = "INSERT INTO class_schedules (user_id, day_of_week, subject, start_time, end_time, room, status) 
+                VALUES (?, ?, ?, ?, ?, ?, ?)";
         
-        $params = [];
-        $types = "";
-
-        if ($userId) {
-            $sql .= " AND cs.user_id = ?";
-            $params[] = $userId;
-            $types .= "i";
+        foreach ($schedules as $s) {
+            if (empty($s['subject']) || empty($s['start']) || empty($s['end'])) continue;
+            $this->db->query($sql, [
+                $userId, $s['day'], $s['subject'], $s['start'], $s['end'], $s['room'], $status
+            ], "issssss");
         }
-
-        $sql .= " ORDER BY cs.created_at ASC";
-        return $this->db->query($sql, $params, $types)->get_result()->fetch_all(MYSQLI_ASSOC);
+        return true;
     }
 
-    // Fetch Approved Schedules with Filters
-    public function getApproved($filters, $isAdmin) {
-        // Base Query
-        if ($isAdmin) {
-            $sql = "SELECT cs.*, u.first_name, u.last_name, u.faculty_id 
-                    FROM class_schedules cs 
-                    JOIN users u ON cs.user_id = u.id 
-                    WHERE cs.status = 'approved'";
+    public function delete($scheduleId, $userId, $isAdmin) {
+        $sql = "DELETE FROM class_schedules WHERE id = ?";
+        if (!$isAdmin) {
+            $sql .= " AND user_id = ?";
+            $stmt = $this->db->query($sql, [$scheduleId, $userId], "ii");
         } else {
-            // FIX: Added 'cs' alias here so filters using 'cs.user_id' work
-            $sql = "SELECT cs.*, null as first_name, null as last_name, null as faculty_id 
-                    FROM class_schedules cs
-                    WHERE cs.status = 'approved'";
+            $stmt = $this->db->query($sql, [$scheduleId], "i");
         }
-
-        $params = [];
-        $types = "";
-
-        // Apply Filters
-        if (!empty($filters['user_id'])) {
-            $sql .= " AND cs.user_id = ?";
-            $params[] = $filters['user_id'];
-            $types .= "i";
-        }
-        if (!empty($filters['day_of_week'])) {
-            $sql .= " AND cs.day_of_week = ?";
-            $params[] = $filters['day_of_week'];
-            $types .= "s";
-        }
-
-        // Sorting
-        if ($isAdmin) {
-             $sql .= " ORDER BY u.last_name, u.first_name, FIELD(day_of_week, 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'), start_time";
-        } else {
-             $sql .= " ORDER BY FIELD(day_of_week, 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'), start_time";
-        }
-
-        return $this->db->query($sql, $params, $types)->get_result()->fetch_all(MYSQLI_ASSOC);
+        return $stmt->affected_rows > 0;
     }
 
-    // Fetch raw stats counts (Admin Dashboard logic)
-    public function getGeneralStats() {
-        $schedules = $this->db->query("SELECT COUNT(*) as c FROM class_schedules WHERE status='approved'")->get_result()->fetch_assoc()['c'] ?? 0;
-        $users = $this->db->query("SELECT COUNT(DISTINCT user_id) as c FROM class_schedules WHERE status='approved'")->get_result()->fetch_assoc()['c'] ?? 0;
-        return ['total_schedules' => $schedules, 'total_users_with_schedules' => $users];
+    public function updateStatus($scheduleId, $status) {
+        $sql = "UPDATE class_schedules SET status = ? WHERE id = ?";
+        $stmt = $this->db->query($sql, [$status, $scheduleId], "si");
+        return $stmt->affected_rows > 0;
+    }
+
+    public function getByUser($userId, $status) {
+        $sql = "SELECT * FROM class_schedules WHERE user_id = ? AND status = ? ORDER BY day_of_week, start_time";
+        return $this->db->query($sql, [$userId, $status], "is")->get_result()->fetch_all(MYSQLI_ASSOC);
+    }
+
+    public function getAllByStatus($status) {
+        $sql = "SELECT cs.*, u.first_name, u.last_name, u.faculty_id 
+                FROM class_schedules cs
+                JOIN users u ON cs.user_id = u.id
+                WHERE cs.status = ? ORDER BY u.last_name, cs.day_of_week, cs.start_time";
+        return $this->db->query($sql, [$status], "s")->get_result()->fetch_all(MYSQLI_ASSOC);
+    }
+    
+    public function getAllApprovedGroupedByUser() {
+        $sql = "SELECT cs.*, u.first_name, u.last_name, u.faculty_id 
+                FROM class_schedules cs
+                JOIN users u ON cs.user_id = u.id
+                WHERE cs.status = 'approved' 
+                ORDER BY u.last_name, cs.day_of_week, cs.start_time";
+        
+        $result = $this->db->query($sql)->get_result()->fetch_all(MYSQLI_ASSOC);
+        
+        $grouped = [];
+        foreach ($result as $row) {
+            $userId = $row['user_id'];
+            if (!isset($grouped[$userId])) {
+                $grouped[$userId] = [
+                    'user_info' => [
+                        'first_name' => $row['first_name'],
+                        'last_name' => $row['last_name'],
+                        'faculty_id' => $row['faculty_id']
+                    ],
+                    'schedules' => [],
+                    'stats' => ['total_hours' => 0]
+                ];
+            }
+            $grouped[$userId]['schedules'][] = $row;
+            $duration = (strtotime($row['end_time']) - strtotime($row['start_time'])) / 3600;
+            $grouped[$userId]['stats']['total_hours'] += $duration;
+        }
+        return $grouped;
+    }
+
+    public function getAdminStats() {
+        $sql_users = "SELECT COUNT(DISTINCT user_id) as total FROM class_schedules WHERE status='approved'";
+        $sql_schedules = "SELECT COUNT(*) as total FROM class_schedules WHERE status='approved'";
+        
+        $users = $this->db->query($sql_users)->get_result()->fetch_assoc()['total'] ?? 0;
+        $schedules = $this->db->query($sql_schedules)->get_result()->fetch_assoc()['total'] ?? 0;
+
+        return [
+            'total_users_with_schedules' => $users,
+            'total_schedules' => $schedules
+        ];
+    }
+    
+    public function getUserStats($userId) {
+        $sql = "SELECT start_time, end_time FROM class_schedules WHERE user_id = ? AND status='approved'";
+        $schedules = $this->db->query($sql, [$userId], "i")->get_result()->fetch_all(MYSQLI_ASSOC);
+        
+        $totalHours = 0;
+        $minTime = PHP_INT_MAX;
+        $maxTime = 0;
+        
+        foreach($schedules as $s) {
+            $start = strtotime($s['start_time']);
+            $end = strtotime($s['end_time']);
+            $totalHours += ($end - $start) / 3600;
+            if ($start < $minTime) $minTime = $start;
+            if ($end > $maxTime) $maxTime = $end;
+        }
+        
+        $dutySpan = ($maxTime > $minTime) ? ($maxTime - $minTime) / 3600 : 0;
+        
+        return [
+            'total_hours' => $totalHours,
+            'duty_span' => $dutySpan
+        ];
     }
 }
 ?>
