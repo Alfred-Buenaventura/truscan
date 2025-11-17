@@ -42,69 +42,48 @@
     </nav>
 
     <div class="sidebar-footer">
-        <div id="settings-menu">
-            <?php if (Helper::isAdmin()): ?>
-            <a href="create_admin.php" class="settings-menu-item">
-                <i class="fa-solid fa-user-shield"></i>
-                <span>Create Admin</span>
-            </a>
-            <?php endif; ?>
-            <a href="profile.php" class="settings-menu-item">
-                <i class="fa-solid fa-user"></i>
-                <span>My Profile</span>
-            </a>
-            <a href="about.php" class="settings-menu-item">
-                <i class="fa-solid fa-circle-info"></i>
-                <span>About Us</span>
-            </a>
-            <a href="contact.php" class="settings-menu-item">
-                <i class="fa-solid fa-envelope"></i>
-                <span>Contact Support</span>
-            </a>
-        </div>
-        
-        <div class="user-info">
-            <div class="user-info-inner">
-                <div class="user-avatar">
-                    <?= strtoupper(substr($_SESSION['first_name'] ?? 'A', 0, 1) . substr($_SESSION['last_name'] ?? 'D', 0, 1)) ?>
-                </div>
-                <div class="user-details">
-                    <p>Logged in as</p>
-                    <div class="user-name"><?= htmlspecialchars($_SESSION['full_name'] ?? 'User') ?></div>
-                    <div class="user-id">ID: <?= htmlspecialchars($_SESSION['faculty_id'] ?? 'N/A') ?></div>
-                </div>
-
-                <button class="btn user-settings-btn" id="userSettingsBtn" title="Settings">
-                    <i class="fa-solid fa-gear"></i>
-                </button>
+    
+    <div id="settings-menu">
+        <?php if (Helper::isAdmin()): ?>
+        <a href="create_admin.php" class="settings-menu-item">
+            <i class="fa-solid fa-user-shield"></i>
+            <span>Create Admin</span>
+        </a>
+        <?php endif; ?>
+        <a href="profile.php" class="settings-menu-item">
+            <i class="fa-solid fa-user"></i>
+            <span>My Profile</span>
+        </a>
+        <a href="about.php" class="settings-menu-item">
+            <i class="fa-solid fa-circle-info"></i>
+            <span>About Us</span>
+        </a>
+        <a href="contact.php" class="settings-menu-item">
+            <i class="fa-solid fa-envelope"></i>
+            <span>Contact Support</span>
+        </a>
+    </div>
+    
+    <div class="user-info">
+        <div class="user-info-inner">
+            <div class="user-avatar">
+                <?= strtoupper(substr($_SESSION['first_name'] ?? 'U', 0, 1)) ?>
             </div>
-        </div>
+            <div class="user-details">
+                <p>Logged in as</p>
+                <div class="user-name"><?= htmlspecialchars($_SESSION['full_name'] ?? 'User') ?></div>
+            </div>
 
-        <button class="btn logout-btn" onclick="showLogoutConfirm()">
-             <i class="fa-solid fa-right-from-bracket logout-icon"></i>
-            <span class="logout-text">Log out</span>
-        </button>
+            <button class="btn user-settings-btn" id="userSettingsBtn" type="button">
+                <i class="fa-solid fa-gear"></i>
+            </button>
+        </div>
     </div>
 
-    <div id="logoutConfirmModal" class="modal">
-        <div class="modal-content modal-small">
-            <div class="modal-header">
-                <h3><i class="fa-solid fa-arrow-right-from-bracket"></i> Confirm Logout</h3>
-                <button type="button" class="modal-close" onclick="closeModal('logoutConfirmModal')">
-                    <i class="fa-solid fa-times"></i>
-                </button>
-            </div>
-            <div class="modal-body">
-                <p style="font-size: 1rem; color: var(--gray-700);">Are you sure you want to log out?</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" onclick="closeModal('logoutConfirmModal')">
-                    Cancel
-                </button>
-                <button type="button" class="btn btn-danger" onclick="window.location.href='logout.php'">
-                    <i class="fa-solid fa-arrow-right-from-bracket"></i> Log Out
-                </button>
-            </div>
-        </div>
-    </div>
+    <button class="btn logout-btn" onclick="showLogoutConfirm()">
+         <i class="fa-solid fa-right-from-bracket logout-icon"></i>
+        <span class="logout-text">Log out</span>
+    </button>
+</div>
+
 </aside>
