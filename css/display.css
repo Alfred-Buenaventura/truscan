@@ -1,0 +1,868 @@
+/*
+ * STYLES FOR THE PUBLIC ATTENDANCE DISPLAY
+ * This file styles the 'display.php' page.
+ */
+
+body.dtr-body, 
+html {
+    height: 100%;
+    margin: 0;
+    font-family: 'Inter', 'Segoe UI', Tahoma, sans-serif; 
+    background: var(--gray-50, #f9fafb); 
+    color: var(--gray-900, #111827);
+}
+
+/* Only hide overflow for the display page specifically */
+body.display-body {
+    overflow: hidden;
+}
+
+.display-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    text-align: center;
+    position: relative;
+}
+
+/* 1. The "Welcome" or "Ready" state */
+.default-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    opacity: 1;
+    transition: opacity 0.5s ease;
+}
+
+.default-state .logo-icon {
+    font-size: 8rem;
+    color: var(--emerald-600, #059669);
+}
+
+.default-state h1 {
+    font-size: 4rem;
+    font-weight: 700;
+    color: var(--gray-800, #1f2937);
+    margin: 2rem 0 1rem 0;
+}
+
+.default-state p {
+    font-size: 2rem;
+    color: var(--gray-500, #6b7280);
+}
+
+/* 2. The pop-up card that shows on scan */
+.scan-card {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.7);
+    background: white;
+    border-radius: 24px;
+    /* Use shadow from your main style.css */
+    box-shadow: var(--shadow-strong, 0 8px 24px rgba(0, 0, 0, 0.1)); 
+    width: 90%;
+    max-width: 800px;
+    overflow: hidden;
+    
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 3rem;
+    border: 4px solid var(--emerald-500, #10b981);
+}
+
+/* Animation for showing the card */
+.scan-card.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translate(-50%, -50%) scale(1);
+}
+
+/* 3. Card Content */
+.scan-card .icon-badge {
+    font-size: 3rem;
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    margin-bottom: 2rem;
+}
+
+.scan-card .icon-badge.time-in { 
+    background: var(--emerald-600, #059669); 
+}
+.scan-card .icon-badge.time-out { 
+    background: var(--blue-600, #3b82f6); 
+} 
+
+.scan-card .user-name {
+    font-size: 4.5rem;
+    font-weight: 700;
+    color: var(--gray-800, #1f2937);
+    line-height: 1.1;
+}
+
+.scan-card .scan-status {
+    font-size: 3rem;
+    font-weight: 600;
+    margin: 0.5rem 0;
+}
+
+.scan-card .scan-status.time-in { 
+    color: var(--emerald-700, #047857); 
+}
+.scan-card .scan-status.time-out { 
+    color: var(--blue-700, #1e40af); 
+} /* CHANGED */
+
+.scan-card .time-date {
+    font-size: 2rem;
+    color: var(--gray-600, #4b5563);
+    margin-top: 1.5rem;
+}
+
+.nav-badge {
+    background-color: var(--red-600);
+    color: white;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 12px;
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+.sidebar.collapsed .nav-badge {
+    top: 8px;
+    right: 8px;
+    padding: 1px 4px;
+    font-size: 9px;
+}
+
+/* New Modal for all notifications */
+#allNotificationsModal .modal-content {
+    max-width: 800px;
+}
+.notification-list {
+    max-height: 60vh;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding-right: 10px; /* for scrollbar */
+}
+.notification-item {
+    display: flex;
+    gap: 16px;
+    padding: 16px;
+    background: var(--gray-50);
+    border: 1px solid var(--gray-200);
+    border-radius: 12px;
+    align-items: flex-start;
+}
+/* FIXED: Toned down the unread background color further */
+.notification-item.unread {
+    background: #f8fafc; /* slate-50 */
+    border: 1px solid var(--gray-200); /* Removed green border */
+}
+.notification-item-icon {
+    font-size: 1.5rem;
+    padding-top: 2px;
+}
+/* FIXED: Toned down icon colors further */
+.notification-item-icon.type-success { color: var(--emerald-400); }
+.notification-item-icon.type-warning { color: var(--yellow-400); }
+.notification-item-icon.type-info { color: var(--blue-400); }
+
+.notification-item-content {
+    flex-grow: 1;
+}
+.notification-item-content p {
+    font-size: 1rem;
+    color: var(--gray-700);
+    margin: 0;
+    line-height: 1.5;
+}
+.notification-item-content span {
+    font-size: 0.8rem;
+    color: var(--gray-500);
+    margin-top: 4px;
+}
+.notification-list-empty {
+    text-align: center;
+    padding: 40px;
+    color: var(--gray-500);
+}
+.notification-list-empty i {
+    font-size: 3rem;
+    display: block;
+    margin-bottom: 1rem;
+    color: var(--gray-300);
+}
+
+/* Style the Filter & Export card header */
+.filter-export-section .card-header {
+    background: var(--emerald-600);
+    color: white;
+    border-radius: 12px 12px 0 0; /* Match card radius */
+}
+.filter-export-section .card-header h3,
+.filter-export-section .card-header p {
+    color: white;
+}
+.filter-export-section .card-header i {
+    color: var(--emerald-100);
+    margin-right: 4px;
+}
+.filter-export-section .card-body {
+    background: var(--emerald-50); /* Light green background for the form */
+}
+
+/* Make calendar/date inputs bigger */
+.filter-controls-new input[type="date"].form-control {
+    padding: 0.75rem 0.5rem;
+    font-size: 1rem;
+    line-height: 1.25rem;
+}
+
+/* Make table text bigger and bolder */
+.attendance-table-new tbody td {
+    font-weight: 500; /* Bolder */
+    font-size: 1rem; /* Bigger */
+    color: var(--gray-700);
+}
+.attendance-table-new .user-name {
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+.attendance-table-new .user-id {
+    font-size: 0.9rem;
+}
+
+/* Make Time In/Out spans bigger and darker */
+.time-cell {
+    padding: 0.5rem 0.75rem; /* Bigger span */
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+.time-cell.time-in {
+    color: var(--emerald-700); /* Darker green */
+}
+.time-cell.time-out {
+    color: var(--red-700); /* Darker red */
+}
+.time-cell .status-label {
+    margin-left: 8px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+/* --- END NEW STYLES --- */
+
+/* --- Filter Card Header Color (Harmonized) --- */
+.report-filter-card-admin .card-header,
+.report-filter-card-user .card-header {
+    background-color: var(--emerald-600);
+    color: white;
+}
+.report-filter-card-admin .card-header p,
+.report-filter-card-user .card-header p {
+    color: var(--emerald-100);
+}
+
+
+/* --- Bigger Calendar/Date Inputs --- */
+.report-date-input {
+    font-size: 1rem; /* Bigger font */
+    padding: 0.65rem 0.75rem; /* Taller input */
+    line-height: 1.25;
+}
+
+
+/* --- Table Text Bolder & Bigger --- */
+.attendance-table-new {
+    font-size: 15px; /* Slightly larger base font */
+}
+.attendance-table-new th {
+    font-size: 13px; /* Smaller header */
+}
+
+.attendance-table-new .user-name {
+    font-weight: 600; /* Bolder */
+}
+.attendance-table-new .date-cell {
+    font-weight: 600; /* Bolder */
+    font-size: 1rem; /* 16px */
+}
+
+/* --- Time In / Time Out Styles --- */
+.attendance-table-new .time-cell {
+    padding: 0.75rem 1rem; /* Bigger span (more padding) */
+}
+.attendance-table-new .time-cell span {
+    font-size: 1.1rem; /* 17.6px */
+    font-weight: 600; /* Bolder */
+    display: block;
+    line-height: 1.4;
+}
+.attendance-table-new .time-cell i {
+    font-size: 1.1rem;
+    margin-bottom: 4px;
+}
+
+/* Darker Colors */
+.attendance-table-new .time-cell.time-in {
+    color: var(--emerald-800); /* Darker green */
+}
+.attendance-table-new .time-cell.time-out {
+    color: var(--red-800); /* Darker red */
+}
+
+/* Status Label Colors */
+.attendance-table-new .status-label {
+    font-size: 0.75rem; /* 12px */
+    font-weight: 700;
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 12px;
+    margin-top: 4px;
+}
+.attendance-table-new .status-label.status-late {
+    background-color: var(--yellow-100);
+    color: var(--yellow-700);
+}
+.attendance-table-new .status-label.status-absent {
+    background-color: var(--red-100);
+    color: var(--red-700);
+}
+
+/* ==============================================
+NEW STYLES FOR DTR PRINT PAGE (print_dtr.php)
+==============================================
+*/
+.dtr-day-disabled {
+    background: #eee; 
+    height: 100%; 
+    width: 100%;
+    color: #999;
+}
+
+/* ==============================================
+NEW STYLES FOR ADMIN "ALL USERS" SCHEDULE ACCORDION
+==============================================
+*/
+.user-schedule-accordion {
+    border: 1px solid var(--gray-200);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.user-schedule-group {
+    border-bottom: 1px solid var(--gray-200);
+}
+.user-schedule-group:last-child {
+    border-bottom: 0;
+}
+
+.user-schedule-header {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    padding: 1rem 1.5rem;
+    background: var(--gray-50);
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    border: none;
+    text-align: left;
+}
+.user-schedule-header:hover {
+    background: var(--gray-100);
+}
+.user-schedule-header.active {
+    background: white;
+}
+
+.user-schedule-info {
+    flex-grow: 1;
+}
+.user-schedule-info .user-name {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--gray-800);
+    display: block;
+}
+.user-schedule-info .user-id {
+    font-size: 0.85rem;
+    color: var(--gray-500);
+    font-family: monospace;
+}
+
+.user-schedule-stats {
+    display: flex;
+    gap: 1.5rem;
+    font-size: 0.9rem;
+    color: var(--gray-600);
+    margin-right: 1.5rem;
+}
+.user-schedule-stats strong {
+    color: var(--gray-900);
+    font-weight: 600;
+}
+
+.schedule-group-icon {
+    font-size: 1rem;
+    color: var(--gray-400);
+    transition: transform 0.2s ease;
+}
+.user-schedule-header.active .schedule-group-icon {
+    transform: rotate(180deg);
+}
+
+.user-schedule-body {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out;
+    background: white;
+}
+
+/* This is the table *inside* the accordion */
+.schedule-table-inner {
+    width: 100%;
+    border-collapse: collapse;
+}
+.schedule-table-inner thead {
+    background: var(--gray-100);
+}
+.schedule-table-inner th,
+.schedule-table-inner td {
+    padding: 12px 16px;
+    text-align: left;
+    border-bottom: 1px solid var(--gray-200);
+}
+.schedule-table-inner .table-day-highlight {
+    font-weight: 600;
+    color: var(--emerald-700);
+}
+.schedule-table-inner .vacant-row td {
+    border-top: 1px solid var(--blue-200);
+    border-bottom: 1px solid var(--blue-200);
+}
+
+#toast-container {
+        position: fixed;
+        bottom: 20px; /* Changed from top */
+        right: 20px;
+        z-index: 1000;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        transform-origin: bottom right;
+    }
+
+    .toast-message {
+        transform: translateX(120%); /* Start off-screen */
+        animation: toast-slide-in 0.5s forwards;
+    }
+
+    @keyframes toast-slide-in {
+        from {
+            transform: translateX(120%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+
+/* ==============================================
+   PAGE HINT CARD
+   ============================================== */
+.page-hint-card {
+    margin-top: 2.5rem;
+    padding: 1.5rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    
+    /* Using your theme's yellow colors */
+    background-color: var(--yellow-50); /* */
+    border: 1px solid var(--yellow-200); /* */
+    border-radius: 12px;
+    
+    /* This creates the subtle, semi-transparent look you wanted */
+    opacity: 0.9; 
+}
+
+.page-hint-icon {
+    flex-shrink: 0;
+    font-size: 1.5rem;
+    color: var(--yellow-700); /* */
+    margin-top: 0.25rem;
+}
+
+.page-hint-content h4 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--yellow-700); /* */
+}
+
+.page-hint-content p {
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--gray-700); /* */
+    line-height: 1.6;
+}
+
+/* Makes the user ID subtitle black (dark gray) */
+.attendance-table-new .user-id {
+    color: var(--gray-800); /* */
+}
+
+/* Adds the pointer cursor to the whole row */
+.attendance-table-new tbody tr.clickable-row {
+    cursor: pointer;
+}
+
+/* Adds a hover effect to the whole row */
+.attendance-table-new tbody tr.clickable-row:hover {
+    background-color: var(--emerald-100); /* */
+}
+
+/* Makes the user's name change color when the row is hovered */
+.attendance-table-new tbody tr.clickable-row:hover .user-name {
+    color: var(--emerald-700); /* */
+}
+
+/* ==============================================
+   DTR PREVIEW MODAL & HORIZONTAL LAYOUT
+   ============================================== */
+
+/* ==============================================
+   ATTENDANCE REPORT - CLICKABLE ROW & SUBTITLE
+   ============================================== */
+
+/* Makes the user ID subtitle black (dark gray) */
+.attendance-table-new .user-id {
+    color: var(--gray-800);
+}
+
+/* Adds the pointer cursor to the whole row */
+.attendance-table-new tbody tr.clickable-row {
+    cursor: pointer;
+}
+
+/* Adds a hover effect to the whole row */
+.attendance-table-new tbody tr.clickable-row:hover {
+    background-color: var(--emerald-100);
+}
+
+/* Makes the user's name change color when the row is hovered */
+.attendance-table-new tbody tr.clickable-row:hover .user-name {
+    color: var(--emerald-700);
+}
+
+/* ==============================================
+   ATTENDANCE REPORT - CLICKABLE ROW & SUBTITLE
+   ============================================== */
+
+/* Makes the user ID subtitle black (dark gray) */
+.attendance-table-new .user-id {
+    color: var(--gray-800);
+}
+
+/* Adds the pointer cursor to the whole row */
+.attendance-table-new tbody tr.clickable-row {
+    cursor: pointer;
+}
+
+/* Adds a hover effect to the whole row */
+.attendance-table-new tbody tr.clickable-row:hover {
+    background-color: var(--emerald-100);
+}
+
+/* Makes the user's name change color when the row is hovered */
+.attendance-table-new tbody tr.clickable-row:hover .user-name {
+    color: var(--emerald-700);
+}
+
+/* ==============================================
+   ATTENDANCE REPORT - CLICKABLE ROW & SUBTITLE
+   ============================================== */
+
+/* Makes the user ID subtitle black (dark gray) */
+.attendance-table-new .user-id {
+    color: var(--gray-800);
+}
+
+/* Adds the pointer cursor to the whole row */
+.attendance-table-new tbody tr.clickable-row {
+    cursor: pointer;
+}
+
+/* Adds a hover effect to the whole row */
+.attendance-table-new tbody tr.clickable-row:hover {
+    background-color: var(--emerald-100);
+}
+
+/* Makes the user's name change color when the row is hovered */
+.attendance-table-new tbody tr.clickable-row:hover .user-name {
+    color: var(--emerald-700);
+}
+
+/* --- Contact Page Refactor Styles --- */
+.contact-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-bottom: 1.5rem;
+}
+
+.contact-info-list {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.contact-info-item {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+}
+
+.contact-info-icon {
+    width: 48px;
+    height: 48px;
+    background: var(--emerald-100);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.contact-info-icon svg {
+    width: 24px;
+    height: 24px;
+    color: var(--emerald-600);
+}
+
+.contact-info-content h4 {
+    font-weight: 600;
+    margin: 0 0 4px 0;
+}
+
+.contact-info-content p {
+    color: var(--gray-600);
+    margin: 0;
+    line-height: 1.5;
+}
+
+.quick-support-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.quick-support-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px;
+    background: var(--gray-50);
+    border-radius: 8px;
+    text-decoration: none;
+    color: var(--gray-700);
+    transition: all 0.2s ease;
+}
+
+.quick-support-link:hover {
+    background: var(--emerald-50);
+    color: var(--emerald-700);
+}
+
+.quick-support-link svg {
+    width: 16px;
+    height: 16px;
+    color: var(--emerald-600);
+}
+
+.response-time-box {
+    background: #DBEAFE; /* blue-100 */
+    padding: 16px;
+    border-radius: 12px;
+    border: 1px solid #93C5FD; /* blue-300 */
+}
+
+.response-time-box h4 {
+    color: #1E40AF; /* blue-800 */
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.response-time-box p {
+    font-size: 14px;
+    color: #1E40AF; /* blue-800 */
+    margin: 0;
+}
+
+.faq-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.faq-item {
+    padding: 16px;
+    background: var(--gray-50);
+    border-radius: 12px;
+}
+
+.faq-item h4 {
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.faq-item p {
+    font-size: 14px;
+    color: var(--gray-600);
+    margin: 0;
+}
+
+/* Responsive adjustments for contact page */
+@media (max-width: 768px) {
+    .contact-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* --- Admin Edit Attendance Styles --- */
+.attendance-table-new .actions-cell {
+    width: 1%;
+    white-space: nowrap;
+    text-align: right;
+}
+
+.modal-edit-record .form-grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.modal-edit-record .form-group {
+    margin-bottom: 1rem;
+}
+
+.modal-edit-record .form-group label {
+    font-weight: 600;
+    color: var(--gray-700);
+    margin-bottom: 0.5rem;
+    display: block;
+    font-size: 0.9rem;
+}
+
+.modal-edit-record .form-group textarea.form-control {
+    min-height: 80px;
+    resize: vertical;
+}
+
+.modal-edit-record .modal-header {
+    background-color: var(--yellow-50);
+}
+
+.modal-edit-record .modal-header h3 {
+    color: var(--yellow-700);
+}
+
+.modal-edit-record .btn-primary {
+    background-color: var(--yellow-700);
+    border-color: var(--yellow-700);
+}
+.modal-edit-record .btn-primary:hover {
+    background-color: var(--yellow-800);
+    border-color: var(--yellow-800);
+}
+
+/* --- Admin DTR Editor Modal --- */
+.modal-dtr-editor .modal-content {
+    max-width: 1000px;
+}
+
+.modal-dtr-editor .modal-header {
+    background-color: var(--emerald-50);
+}
+.modal-dtr-editor .modal-header h3 {
+    color: var(--emerald-800);
+}
+
+.modal-dtr-editor .modal-body {
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+.modal-dtr-editor .modal-footer {
+    justify-content: space-between;
+}
+
+.dtr-editor-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+}
+.dtr-editor-table thead {
+    background: var(--gray-100);
+    position: sticky;
+    top: -24px; /* Sticks to the top of the modal body */
+}
+.dtr-editor-table th,
+.dtr-editor-table td {
+    border: 1px solid var(--gray-300);
+    padding: 6px 8px;
+    text-align: left;
+    vertical-align: top;
+}
+.dtr-editor-table th {
+    font-weight: 600;
+}
+.dtr-editor-table .col-day { width: 5%; text-align: center; }
+.dtr-editor-table .col-time { width: 15%; }
+.dtr-editor-table .col-status { width: 18%; }
+.dtr-editor-table .col-remarks { width: 47%; }
+
+.dtr-editor-table input[type="time"],
+.dtr-editor-table select.form-control,
+.dtr-editor-table textarea.form-control {
+    width: 100%;
+    padding: 4px 6px;
+    font-size: 0.85rem;
+    border-radius: 4px;
+}
+.dtr-editor-table textarea.form-control {
+    min-height: 32px;
+    resize: vertical;
+}
+.dtr-editor-table tr[disabled] {
+    background: var(--gray-50);
+}
+.dtr-editor-table tr[disabled] input {
+    background: var(--gray-200);
+    cursor: not-allowed;
+}
+#dtrEditorLoading {
+    text-align: center;
+    padding: 3rem;
+    font-size: 1.2rem;
+    color: var(--gray-500);
+}
