@@ -1,19 +1,21 @@
 <?php
+// 1. Secure Session Start
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
+// 2. Set Timezone
 date_default_timezone_set('Asia/Manila');
 
-// Load Core Classes (LOWERCASE FILENAMES)
+// 3. Load Core Classes (Use LOWERCASE filenames)
 require_once __DIR__ . '/core/database.php';
 require_once __DIR__ . '/core/controller.php';
-require_once __DIR__ . '/core/helper.php';
+require_once __DIR__ . '/core/helper.php';  // <--- This loads the Helper class
 require_once __DIR__ . '/core/mailer.php';
 
-// Load .env
+// 4. Load .env (Ensure the path is correct)
+// This looks for .env one folder UP from app/init.php (i.e., in the root)
 Helper::loadEnv(__DIR__ . '/../.env');
-
 // Load Models (LOWERCASE FILENAMES)
 require_once __DIR__ . '/models/user.php';
 require_once __DIR__ . '/models/activitylog.php';
