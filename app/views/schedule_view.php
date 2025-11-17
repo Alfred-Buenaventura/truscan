@@ -1,5 +1,4 @@
 <?php 
-// FIX: Use __DIR__ to locate the partials folder correctly
 require_once __DIR__ . '/partials/header.php'; 
 ?>
 <div class="main-body">
@@ -11,57 +10,50 @@ require_once __DIR__ . '/partials/header.php';
         <div class="alert alert-success"><?= htmlspecialchars($success) ?></div>
     <?php endif; ?>
 
+    <!-- Stats Grid -->
     <div class="stats-grid schedule-stats-grid">
         <?php if (!empty($selectedUserInfo) && isset($userStats)): ?>
             <div class="stat-card stat-card-small">
                 <div class="stat-icon emerald"><i class="fa-solid fa-user"></i></div>
                 <div class="stat-details">
-                    <p>Viewing Schedule For</p>
+                    <p>Viewing Schedule</p>
                     <div class="stat-value-name"><?= htmlspecialchars($selectedUserInfo['first_name'] . ' ' . $selectedUserInfo['last_name']) ?></div>
-                    <p class="stat-value-subtext"><?= htmlspecialchars($selectedUserInfo['faculty_id']) ?></p>
                 </div>
             </div>
             <div class="stat-card stat-card-small">
                 <div class="stat-icon emerald"><i class="fa-solid fa-clock"></i></div>
                 <div class="stat-details">
-                    <p>Scheduled Hours</p>
+                    <p>Total Hours</p>
                     <div class="stat-value emerald"><?= number_format($userStats['total_hours'], 1) ?>h</div>
                 </div>
             </div>
             <div class="stat-card stat-card-small">
-                <div class="stat-icon" style="color:var(--blue-600); background:var(--blue-100);"><i class="fa-solid fa-hourglass"></i></div>
-                <div class="stat-details">
-                    <p>Vacant Hours</p>
-                    <div class="stat-value" style="color:var(--blue-700);"><?= number_format($userStats['vacant_hours'], 1) ?>h</div>
-                </div>
-            </div>
-            <div class="stat-card stat-card-small">
-                <div class="stat-icon" style="color:var(--indigo-600); background:var(--indigo-100);"><i class="fa-solid fa-business-time"></i></div>
+                <div class="stat-icon blue"><i class="fa-solid fa-calendar-week"></i></div>
                 <div class="stat-details">
                     <p>Duty Span</p>
-                    <div class="stat-value" style="color:var(--indigo-700);"><?= number_format($userStats['duty_span'], 1) ?>h</div>
+                    <div class="stat-value blue"><?= number_format($userStats['duty_span'], 1) ?>h</div>
                 </div>
             </div>
         <?php elseif ($isAdmin): ?>
             <div class="stat-card stat-card-small">
                 <div class="stat-icon emerald"><i class="fa-solid fa-users"></i></div>
                 <div class="stat-details">
-                    <p>Viewing</p>
-                    <div class="stat-value-name">All Users</div>
+                    <p>Staff with Schedules</p>
+                    <div class="stat-value emerald"><?= $stats['total_users_with_schedules'] ?? 0 ?></div>
                 </div>
             </div>
             <div class="stat-card stat-card-small">
-                <div class="stat-icon emerald"><i class="fa-solid fa-list-check"></i></div>
+                <div class="stat-icon blue"><i class="fa-solid fa-list-check"></i></div>
                 <div class="stat-details">
-                    <p>Total Approved</p>
-                    <div class="stat-value emerald"><?= $stats['total_schedules'] ?? 0 ?></div>
+                    <p>Total Classes</p>
+                    <div class="stat-value blue"><?= $stats['total_schedules'] ?? 0 ?></div>
                 </div>
             </div>
              <div class="stat-card stat-card-small">
-                <div class="stat-icon emerald"><i class="fa-solid fa-user-check"></i></div>
+                <div class="stat-icon yellow"><i class="fa-solid fa-hourglass-half"></i></div>
                 <div class="stat-details">
-                    <p>Users with Schedules</p>
-                    <div class="stat-value emerald"><?= $stats['total_users_with_schedules'] ?? 0 ?></div>
+                    <p>Pending Approval</p>
+                    <div class="stat-value yellow"><?= count($pendingSchedules) ?></div>
                 </div>
             </div>
         <?php endif; ?>
@@ -70,39 +62,41 @@ require_once __DIR__ . '/partials/header.php';
     <div class="card" id="schedule-card">
         <div class="card-header card-header-flex">
             <div>
-                <h3>Manage Schedules</h3>
-                <p><?= $isAdmin ? 'Approve pending schedules or manage approved ones' : 'View your approved schedules or pending submissions' ?></p>
+                <h3>Schedule Management</h3>
+                <p>Manage and monitor class schedules</p>
             </div>
             <div class="card-header-actions">
                 <?php if (!$isAdmin): ?>
-                <button class="btn btn-primary" onclick="openAddModal()">
-                    <i class="fa-solid fa-plus"></i> Add New Schedule(s)
+                <button class="btn btn-primary btn-sm" onclick="openAddModal()">
+                    <i class="fa-solid fa-plus"></i> Add Schedule
                 </button>
                 <?php endif; ?>
             </div>
         </div>
 
-        <div class="tabs" style="padding: 0 1.5rem; background: var(--gray-50);">
+        <div class="tabs">
             <button class="tab-btn <?= $activeTab === 'manage' ? 'active' : '' ?>" onclick="showScheduleTab(event, 'manage')">
-                <i class="fa-solid fa-check-circle"></i> Approved Schedules
+                <i class="fa-solid fa-calendar-check"></i> Approved Schedules
             </button>
             <button class="tab-btn <?= $activeTab === 'pending' ? 'active' : '' ?>" onclick="showScheduleTab(event, 'pending')">
-                <i class="fa-solid fa-clock"></i> Pending Approval 
+                <i class="fa-solid fa-file-circle-question"></i> Pending Approval 
                 <?php if (count($pendingSchedules) > 0): ?>
                     <span class="notification-count-badge"><?= count($pendingSchedules) ?></span>
                 <?php endif; ?>
             </button>
         </div>
         
+        <!-- MANAGE TAB (Approved Schedules) -->
         <div id="manageTab" class="tab-content <?= $activeTab === 'manage' ? 'active' : '' ?>">
             <div class="card-body">
+                
                 <form method="GET" class="schedule-filter-form">
                     <div class="schedule-filter-grid">
                         <?php if ($isAdmin): ?>
                         <div class="form-group">
-                            <label>Select User</label>
+                            <label>Filter by User</label>
                             <select name="user_id" class="form-control" onchange="this.form.submit()">
-                                <option value="">-- All Users --</option>
+                                <option value="">View All Users</option>
                                 <?php foreach ($users as $user): ?>
                                     <option value="<?= $user['id'] ?>" <?= $selectedUserId == $user['id'] ? 'selected' : '' ?>>
                                         <?= htmlspecialchars($user['first_name'] . ' ' . $user['last_name']) ?>
@@ -111,39 +105,99 @@ require_once __DIR__ . '/partials/header.php';
                             </select>
                         </div>
                         <?php endif; ?>
-
-                        <div class="form-group">
-                            <label>Day of Week</label>
-                            <select name="day_of_week" class="form-control" onchange="this.form.submit()">
-                                <option value="">All Days</option>
-                                <?php foreach(['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'] as $d): ?>
-                                    <option value="<?= $d ?>" <?= ($filters['day_of_week'] ?? '') == $d ? 'selected' : '' ?>><?= $d ?></option>
-                                <?php endforeach; ?>
-                            </select>
-                        </div>
-                        <button type="submit" class="btn btn-primary">Apply Filters</button>
                     </div>
                 </form>
 
                 <?php if ($isAdmin && empty($filters['user_id'])): ?>
+                    <!-- ADMIN VIEW: LIST OF USERS (ACCORDION) -->
                     <?php if (empty($groupedApprovedSchedules)): ?>
-                        <p class="empty-schedule-message">No approved schedules found.</p>
+                        <div class="empty-state">
+                            <i class="fa-solid fa-calendar-xmark"></i>
+                            <p>No approved schedules found.</p>
+                        </div>
                     <?php else: ?>
                         <div class="user-schedule-accordion">
                             <?php foreach ($groupedApprovedSchedules as $uid => $userData): ?>
                                 <div class="user-schedule-group">
                                     <button class="user-schedule-header" onclick="toggleScheduleGroup(this)">
-                                        <div class="user-schedule-info">
-                                            <span class="user-name"><?= htmlspecialchars($userData['user_info']['first_name'] . ' ' . $userData['user_info']['last_name']) ?></span>
-                                            <span class="user-id"><?= htmlspecialchars($userData['user_info']['faculty_id']) ?></span>
+                                        <div class="user-info-col">
+                                            <div class="user-avatar-small"><?= strtoupper(substr($userData['user_info']['first_name'],0,1)) ?></div>
+                                            <div>
+                                                <span class="user-name"><?= htmlspecialchars($userData['user_info']['first_name'] . ' ' . $userData['user_info']['last_name']) ?></span>
+                                                <span class="user-id"><?= htmlspecialchars($userData['user_info']['faculty_id']) ?></span>
+                                            </div>
                                         </div>
-                                        <div class="user-schedule-stats">
-                                            <span>Sched: <strong><?= number_format($userData['stats']['total_hours'], 1) ?>h</strong></span>
+                                        <div class="user-stats-col">
+                                            <span class="badge badge-blue"><?= number_format($userData['stats']['total_hours'], 1) ?> hrs</span>
+                                        </div>
+                                        <div class="user-toggle-col">
                                             <i class="fa-solid fa-chevron-down schedule-group-icon"></i>
                                         </div>
                                     </button>
+
                                     <div class="user-schedule-body">
-                                        <?php renderScheduleTable($userData['schedules'], true); ?>
+                                        <?php 
+                                            $days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+                                            $dailySchedules = [];
+                                            foreach ($userData['schedules'] as $s) {
+                                                $dailySchedules[$s['day_of_week']][] = $s;
+                                            }
+                                        ?>
+                                        
+                                        <div class="daily-schedule-container">
+                                            <?php foreach ($days as $day): ?>
+                                                <?php if (!empty($dailySchedules[$day])): ?>
+                                                    <div class="day-group">
+                                                        <div class="day-header"><?= $day ?></div>
+                                                        <table class="day-table">
+                                                            <thead>
+                                                                <tr>
+                                                                    <th>Subject</th>
+                                                                    <th>Time</th>
+                                                                    <th>Room</th>
+                                                                    <th style="width: 100px;">Actions</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                <?php 
+                                                                usort($dailySchedules[$day], function($a, $b) {
+                                                                    return strtotime($a['start_time']) - strtotime($b['start_time']);
+                                                                });
+                                                                foreach ($dailySchedules[$day] as $sched): 
+                                                                ?>
+                                                                <tr>
+                                                                    <td style="font-weight: 600;"><?= htmlspecialchars($sched['subject']) ?></td>
+                                                                    <td>
+                                                                        <div class="time-pill">
+                                                                            <?= date('g:i A', strtotime($sched['start_time'])) ?> - <?= date('g:i A', strtotime($sched['end_time'])) ?>
+                                                                        </div>
+                                                                    </td>
+                                                                    <td><?= htmlspecialchars($sched['room']) ?></td>
+                                                                    <td>
+                                                                        <!-- NEW EDIT BUTTON -->
+                                                                        <button class="btn-icon" onclick="openEditModal(
+                                                                            <?= $sched['id'] ?>,
+                                                                            <?= $sched['user_id'] ?>,
+                                                                            '<?= $sched['day_of_week'] ?>',
+                                                                            '<?= htmlspecialchars($sched['subject'], ENT_QUOTES) ?>',
+                                                                            '<?= date('H:i', strtotime($sched['start_time'])) ?>',
+                                                                            '<?= date('H:i', strtotime($sched['end_time'])) ?>',
+                                                                            '<?= htmlspecialchars($sched['room'], ENT_QUOTES) ?>'
+                                                                        )" title="Edit">
+                                                                            <i class="fa-solid fa-pen"></i>
+                                                                        </button>
+                                                                        <button class="btn-icon danger" onclick="openDeleteModal(<?= $sched['id'] ?>, <?= $sched['user_id'] ?>)" title="Delete">
+                                                                            <i class="fa-solid fa-trash"></i>
+                                                                        </button>
+                                                                    </td>
+                                                                </tr>
+                                                                <?php endforeach; ?>
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                <?php endif; ?>
+                                            <?php endforeach; ?>
+                                        </div>
                                     </div>
                                 </div>
                             <?php endforeach; ?>
@@ -151,8 +205,12 @@ require_once __DIR__ . '/partials/header.php';
                     <?php endif; ?>
 
                 <?php else: ?>
+                    <!-- SINGLE USER VIEW (Standard Table) -->
                     <?php if (empty($approvedSchedules)): ?>
-                        <p class="empty-schedule-message">No schedules found.</p>
+                         <div class="empty-state">
+                            <i class="fa-solid fa-calendar-plus"></i>
+                            <p>No schedules added yet.</p>
+                        </div>
                     <?php else: ?>
                         <?php renderScheduleTable($approvedSchedules, false); ?>
                     <?php endif; ?>
@@ -160,12 +218,16 @@ require_once __DIR__ . '/partials/header.php';
             </div>
         </div>
 
+        <!-- PENDING TAB -->
         <div id="pendingTab" class="tab-content <?= $activeTab === 'pending' ? 'active' : '' ?>">
             <div class="card-body">
                 <?php if (empty($pendingSchedules)): ?>
-                    <p class="empty-schedule-message">No pending schedules.</p>
+                    <div class="empty-state">
+                        <i class="fa-solid fa-check-double"></i>
+                        <p>No pending approvals.</p>
+                    </div>
                 <?php else: ?>
-                    <table>
+                    <table class="data-table">
                         <thead>
                             <tr>
                                 <?php if ($isAdmin): ?><th>User</th><?php endif; ?>
@@ -177,9 +239,12 @@ require_once __DIR__ . '/partials/header.php';
                             <?php foreach ($pendingSchedules as $sched): ?>
                             <tr>
                                 <?php if ($isAdmin): ?>
-                                    <td><?= htmlspecialchars($sched['first_name'] . ' ' . $sched['last_name']) ?></td>
+                                    <td>
+                                        <strong><?= htmlspecialchars($sched['first_name'] . ' ' . $sched['last_name']) ?></strong><br>
+                                        <small class="text-muted"><?= htmlspecialchars($sched['faculty_id']) ?></small>
+                                    </td>
                                 <?php endif; ?>
-                                <td class="table-day-highlight"><?= $sched['day_of_week'] ?></td>
+                                <td><span class="day-badge"><?= $sched['day_of_week'] ?></span></td>
                                 <td><?= htmlspecialchars($sched['subject']) ?></td>
                                 <td><?= date('g:i A', strtotime($sched['start_time'])) ?> - <?= date('g:i A', strtotime($sched['end_time'])) ?></td>
                                 <td><?= htmlspecialchars($sched['room']) ?></td>
@@ -193,7 +258,6 @@ require_once __DIR__ . '/partials/header.php';
                                             <button type="submit" name="decline_schedule" class="btn btn-sm btn-danger"><i class="fa-solid fa-times"></i></button>
                                         </form>
                                     <?php else: ?>
-                                        <button class="btn btn-sm btn-primary" onclick="openEditModal(<?= $sched['id'] ?>, <?= $sched['user_id'] ?>, '<?= $sched['day_of_week'] ?>', '<?= htmlspecialchars($sched['subject']) ?>', '<?= $sched['start_time'] ?>', '<?= $sched['end_time'] ?>', '<?= htmlspecialchars($sched['room']) ?>')"><i class="fa-solid fa-pen"></i></button>
                                         <button class="btn btn-sm btn-danger" onclick="openDeleteModal(<?= $sched['id'] ?>, <?= $sched['user_id'] ?>)"><i class="fa-solid fa-trash"></i></button>
                                     <?php endif; ?>
                                 </td>
@@ -210,20 +274,26 @@ require_once __DIR__ . '/partials/header.php';
 <?php require_once __DIR__ . '/partials/footer.php'; ?>
 
 <?php
-// Helper to render table rows
+// Helper to render table rows for single user view
 function renderScheduleTable($schedules, $nested) {
-    echo '<table class="schedule-table-inner"><thead><tr><th>Day</th><th>Subject</th><th>Time</th><th>Duration</th><th>Room</th><th>Actions</th></tr></thead><tbody>';
+    echo '<table class="data-table"><thead><tr><th>Day</th><th>Subject</th><th>Time</th><th>Room</th><th>Actions</th></tr></thead><tbody>';
+    
+    $dayOrder = ['Monday'=>1,'Tuesday'=>2,'Wednesday'=>3,'Thursday'=>4,'Friday'=>5,'Saturday'=>6];
+    usort($schedules, function($a, $b) use ($dayOrder) {
+        $da = $dayOrder[$a['day_of_week']] ?? 7;
+        $db = $dayOrder[$b['day_of_week']] ?? 7;
+        if ($da !== $db) return $da - $db;
+        return strtotime($a['start_time']) - strtotime($b['start_time']);
+    });
+
     foreach ($schedules as $sched) {
-        $hours = (strtotime($sched['end_time']) - strtotime($sched['start_time'])) / 3600;
         echo '<tr>';
-        echo '<td class="table-day-highlight">' . $sched['day_of_week'] . '</td>';
+        echo '<td><span class="day-badge">' . $sched['day_of_week'] . '</span></td>';
         echo '<td>' . htmlspecialchars($sched['subject']) . '</td>';
         echo '<td>' . date('g:i A', strtotime($sched['start_time'])) . ' - ' . date('g:i A', strtotime($sched['end_time'])) . '</td>';
-        echo '<td>' . number_format($hours, 1) . 'h</td>';
         echo '<td>' . htmlspecialchars($sched['room']) . '</td>';
         echo '<td>';
-        echo '<button class="btn btn-sm btn-primary" onclick="openEditModal(' . $sched['id'] . ', ' . $sched['user_id'] . ', \'' . $sched['day_of_week'] . '\', \'' . htmlspecialchars($sched['subject']) . '\', \'' . $sched['start_time'] . '\', \'' . $sched['end_time'] . '\', \'' . htmlspecialchars($sched['room']) . '\')"><i class="fa-solid fa-pen"></i></button> ';
-        echo '<button class="btn btn-sm btn-danger" onclick="openDeleteModal(' . $sched['id'] . ', ' . $sched['user_id'] . ')"><i class="fa-solid fa-trash"></i></button>';
+        echo '<button class="btn-icon danger" onclick="openDeleteModal(' . $sched['id'] . ', ' . $sched['user_id'] . ')"><i class="fa-solid fa-trash"></i></button>';
         echo '</td>';
         echo '</tr>';
     }
@@ -231,10 +301,11 @@ function renderScheduleTable($schedules, $nested) {
 }
 ?>
 
+<!-- Modals -->
 <div id="addScheduleModal" class="modal">
     <div class="modal-content modal-lg">
         <form method="POST">
-            <div class="modal-header"><h3>Add Schedule</h3><button type="button" class="modal-close" onclick="closeModal('addScheduleModal')">&times;</button></div>
+            <div class="modal-header"><h3><i class="fa-solid fa-plus"></i> Add Schedule</h3><button type="button" class="modal-close" onclick="closeModal('addScheduleModal')">&times;</button></div>
             <div class="modal-body">
                 <div id="schedule-entry-list"></div> <button type="button" class="btn btn-secondary" onclick="addScheduleRow()">+ Add Row</button>
             </div>
@@ -245,20 +316,42 @@ function renderScheduleTable($schedules, $nested) {
     </div>
 </div>
 
+<!-- NEW: Edit Schedule Modal -->
 <div id="editScheduleModal" class="modal">
-    <div class="modal-content modal-small">
+    <div class="modal-content">
         <form method="POST">
-            <div class="modal-header"><h3>Edit Schedule</h3><button type="button" class="modal-close" onclick="closeModal('editScheduleModal')">&times;</button></div>
+            <input type="hidden" name="schedule_id_edit" id="editScheduleId">
+            <input type="hidden" name="user_id_edit" id="editUserId">
+            
+            <div class="modal-header"><h3><i class="fa-solid fa-pen-to-square"></i> Edit Schedule</h3><button type="button" class="modal-close" onclick="closeModal('editScheduleModal')">&times;</button></div>
             <div class="modal-body">
-                <input type="hidden" name="schedule_id" id="editScheduleId">
-                <input type="hidden" name="user_id_edit" id="editUserId">
-                <div class="form-group"><label>Day</label><select name="day_of_week" id="editDayOfWeek" class="form-control"><option>Monday</option><option>Tuesday</option><option>Wednesday</option><option>Thursday</option><option>Friday</option><option>Saturday</option></select></div>
-                <div class="form-group"><label>Subject</label><input type="text" name="subject" id="editSubject" class="form-control"></div>
-                <div class="form-group"><label>Start</label><input type="time" name="start_time" id="editStartTime" class="form-control"></div>
-                <div class="form-group"><label>End</label><input type="time" name="end_time" id="editEndTime" class="form-control"></div>
-                <div class="form-group"><label>Room</label><input type="text" name="room" id="editRoom" class="form-control"></div>
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <label>Day of Week</label>
+                    <select name="day_of_week_edit" id="editDay" class="form-control">
+                        <option>Monday</option><option>Tuesday</option><option>Wednesday</option><option>Thursday</option><option>Friday</option><option>Saturday</option>
+                    </select>
+                </div>
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <label>Subject</label>
+                    <input type="text" name="subject_edit" id="editSubject" class="form-control" required>
+                </div>
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <label>Start Time</label>
+                    <input type="time" name="start_time_edit" id="editStartTime" class="form-control" required>
+                </div>
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <label>End Time</label>
+                    <input type="time" name="end_time_edit" id="editEndTime" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label>Room</label>
+                    <input type="text" name="room_edit" id="editRoom" class="form-control">
+                </div>
             </div>
-            <div class="modal-footer"><button type="submit" name="edit_schedule" class="btn btn-primary">Update</button></div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('editScheduleModal')">Cancel</button>
+                <button type="submit" name="edit_schedule" class="btn btn-primary">Save Changes</button>
+            </div>
         </form>
     </div>
 </div>
@@ -266,8 +359,8 @@ function renderScheduleTable($schedules, $nested) {
 <div id="deleteScheduleModal" class="modal">
     <div class="modal-content modal-small">
         <form method="POST">
-            <div class="modal-header" style="background:var(--red-50);"><h3 style="color:var(--red-700);">Delete?</h3><button type="button" class="modal-close" onclick="closeModal('deleteScheduleModal')">&times;</button></div>
-            <div class="modal-body"><p>Are you sure?</p>
+            <div class="modal-header danger"><h3>Delete?</h3><button type="button" class="modal-close" onclick="closeModal('deleteScheduleModal')">&times;</button></div>
+            <div class="modal-body"><p>Are you sure you want to delete this schedule?</p>
                 <input type="hidden" name="schedule_id_delete" id="deleteScheduleId">
                 <input type="hidden" name="user_id_delete" id="deleteUserId">
             </div>
@@ -287,24 +380,37 @@ document.getElementById('<?= $activeTab ?>Tab').style.display = 'block'; // Init
 
 function toggleScheduleGroup(btn) {
     const body = btn.nextElementSibling;
-    if (body.style.maxHeight) { body.style.maxHeight = null; } else { body.style.maxHeight = body.scrollHeight + "px"; }
+    const icon = btn.querySelector('.schedule-group-icon');
+    
+    if (body.style.maxHeight) { 
+        body.style.maxHeight = null; 
+        btn.classList.remove('active');
+        icon.style.transform = 'rotate(0deg)';
+    } else { 
+        body.style.maxHeight = body.scrollHeight + "px"; 
+        btn.classList.add('active');
+        icon.style.transform = 'rotate(180deg)';
+    }
 }
 
-function openEditModal(id, uid, day, sub, start, end, room) {
-    document.getElementById('editScheduleId').value = id;
-    document.getElementById('editUserId').value = uid;
-    document.getElementById('editDayOfWeek').value = day;
-    document.getElementById('editSubject').value = sub;
-    document.getElementById('editStartTime').value = start;
-    document.getElementById('editEndTime').value = end;
-    document.getElementById('editRoom').value = room;
-    openModal('editScheduleModal');
-}
 function openDeleteModal(id, uid) {
     document.getElementById('deleteScheduleId').value = id;
     document.getElementById('deleteUserId').value = uid;
     openModal('deleteScheduleModal');
 }
+
+// --- NEW: Open Edit Modal ---
+function openEditModal(id, uid, day, subject, start, end, room) {
+    document.getElementById('editScheduleId').value = id;
+    document.getElementById('editUserId').value = uid;
+    document.getElementById('editDay').value = day;
+    document.getElementById('editSubject').value = subject;
+    document.getElementById('editStartTime').value = start;
+    document.getElementById('editEndTime').value = end;
+    document.getElementById('editRoom').value = room;
+    openModal('editScheduleModal');
+}
+
 function openAddModal() {
     const list = document.getElementById('schedule-entry-list');
     list.innerHTML = ''; 
@@ -316,12 +422,35 @@ function addScheduleRow() {
     const div = document.createElement('div');
     div.className = 'schedule-entry-row';
     div.innerHTML = `
-        <select name="day_of_week[]" class="form-control"><option>Monday</option><option>Tuesday</option><option>Wednesday</option><option>Thursday</option><option>Friday</option><option>Saturday</option></select>
-        <input type="text" name="subject[]" placeholder="Subject" class="form-control">
-        <input type="time" name="start_time[]" class="form-control">
-        <input type="time" name="end_time[]" class="form-control">
-        <input type="text" name="room[]" placeholder="Room" class="form-control">
+        <select name="day_of_week[]" class="form-control form-group-day"><option>Monday</option>...</select>
+        <input type="text" name="subject[]" placeholder="Subject" class="form-control form-group-subject" required>
+        <input type="time" name="start_time[]" class="form-control form-group-time" required>
+        <input type="time" name="end_time[]" class="form-control form-group-time" required>
+        <input type="text" name="room[]" placeholder="Room" class="form-control form-group-room">
+        <button type="button" class="btn btn-danger" onclick="this.parentElement.remove()"><i class="fa-solid fa-times"></i></button>
     `;
     list.appendChild(div);
 }
+
+// Modal Helpers
+function openModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+}
+function closeModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) modal.style.display = 'none';
+    document.body.style.overflow = 'auto';
+}
+
+// Close modal on outside click
+window.onclick = function(event) {
+    const modals = document.querySelectorAll('.modal');
+    modals.forEach(modal => {
+        if (event.target === modal) {
+            closeModal(modal.id);
+        }
+    });
+};
 </script>

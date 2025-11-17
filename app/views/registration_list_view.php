@@ -38,84 +38,88 @@ require_once __DIR__ . '/partials/header.php';
         </div>
     </div>
 
-    <div class="pending-registrations-section">
-        <div class="card-header-flex" style="margin-bottom: 1.5rem; align-items: center;">
-            <h3 class="section-title" style="margin: 0;">Pending Registrations (<?= $pendingCount ?>)</h3>
-            <button class="btn btn-primary" onclick="openModal('notifyModal')" <?= empty($pendingUsers) ? 'disabled' : '' ?>>
-                <i class="fa-solid fa-bell"></i> Notify All Pending
+    <div class="card pending-registrations-section">
+        <div class="card-header card-header-flex" style="justify-content: space-between; align-items: center;">
+            <h3><i class="fa-solid fa-clock"></i> Pending Registrations (<?= $pendingCount ?>)</h3>
+            <button class="btn btn-warning btn-sm" onclick="openModal('notifyModal')" <?= empty($pendingUsers) ? 'disabled' : '' ?>>
+                <i class="fa-solid fa-bell"></i> Notify All
             </button>
         </div>
-
-        <?php if (empty($pendingUsers)): ?>
-            <div class="empty-state-card">
-                 <i class="fa-solid fa-check-circle empty-icon"></i>
-                <p class="empty-text-title">No Pending Registrations</p>
-                <p class="empty-text-subtitle">All active users have completed fingerprint registration.</p>
-                <a href="create_account.php" class="btn btn-primary" style="margin-top: 1rem;">
-                    <i class="fa-solid fa-user-plus"></i> Create New Account
-                </a>
-            </div>
-        <?php else: ?>
-            <div class="user-cards-container">
-                <?php foreach ($pendingUsers as $u): ?>
-                    <div class="user-card" data-search-term="<?= strtolower(htmlspecialchars($u['first_name'] . ' ' . $u['last_name'] . ' ' . $u['faculty_id'] . ' ' . $u['email'])) ?>">
-                        <div class="user-card-header">
-                            <span class="user-card-status pending">Pending</span>
-                            <span class="user-card-role"><?= htmlspecialchars(str_replace(' ', '_', strtoupper($u['role']))) ?></span>
+        <div class="card-body">
+            <?php if (empty($pendingUsers)): ?>
+                <div class="empty-state">
+                     <i class="fa-solid fa-check-circle" style="font-size: 3rem; color: var(--emerald-500); margin-bottom: 1rem;"></i>
+                    <p style="font-size: 1.2rem; font-weight: 600; color: var(--gray-700);">No Pending Registrations</p>
+                    <p style="color: var(--gray-600);">All active users have completed fingerprint registration.</p>
+                    <a href="create_account.php" class="btn btn-primary" style="margin-top: 1rem;">
+                        <i class="fa-solid fa-user-plus"></i> Create New Account
+                    </a>
+                </div>
+            <?php else: ?>
+                <div class="user-cards-container">
+                    <?php foreach ($pendingUsers as $u): ?>
+                        <div class="user-card" data-search-term="<?= strtolower(htmlspecialchars($u['first_name'] . ' ' . $u['last_name'] . ' ' . $u['faculty_id'] . ' ' . $u['email'])) ?>">
+                            <div class="user-card-header">
+                                <span class="user-card-status pending">Pending</span>
+                                <span class="user-card-role"><?= htmlspecialchars(str_replace(' ', '_', strtoupper($u['role']))) ?></span>
+                            </div>
+                            <div class="user-card-details">
+                                <p class="user-card-name"><?= htmlspecialchars($u['first_name'] . ' ' . $u['last_name']) ?></p>
+                                <p class="user-card-info"><?= htmlspecialchars($u['faculty_id']) ?></p>
+                                <p class="user-card-info"><?= htmlspecialchars($u['email']) ?></p>
+                            </div>
+                            <a href="fingerprint_registration.php?user_id=<?= $u['id'] ?>" class="user-card-register-btn">
+                                <i class="fa-solid fa-fingerprint"></i>
+                                Register Fingerprint
+                            </a>
                         </div>
-                        <div class="user-card-details">
-                            <p class="user-card-name"><?= htmlspecialchars($u['first_name'] . ' ' . $u['last_name']) ?></p>
-                            <p class="user-card-info"><?= htmlspecialchars($u['faculty_id']) ?></p>
-                            <p class="user-card-info"><?= htmlspecialchars($u['email']) ?></p>
-                        </div>
-                        <a href="fingerprint_registration.php?user_id=<?= $u['id'] ?>" class="user-card-register-btn">
-                            <i class="fa-solid fa-fingerprint"></i>
-                            Register Fingerprint
-                        </a>
-                    </div>
-                <?php endforeach; ?>
-            </div>
-        <?php endif; ?>
+                    <?php endforeach; ?>
+                </div>
+            <?php endif; ?>
+        </div>
     </div>
 
-    <div class="registered-users-section" style="margin-top: 2.5rem;">
-        <h3 class="section-title" style="margin-bottom: 1.5rem;">
-            Registered Users (<?= count($registeredUserList) ?>)
-        </h3>
-        <?php if (empty($registeredUserList)): ?>
-            <div class="empty-state-card">
-                <i class="fa-solid fa-user-slash empty-icon"></i>
-                <p class="empty-text-title">No Registered Users</p>
-                <p class="empty-text-subtitle">No users have completed fingerprint registration yet.</p>
-            </div>
-        <?php else: ?>
-            <div class="user-cards-container">
-                <?php foreach ($registeredUserList as $u): ?>
-                    <div class="user-card" data-search-term="<?= strtolower(htmlspecialchars($u['first_name'] . ' ' . $u['last_name'] . ' ' . $u['faculty_id'] . ' ' . $u['email'])) ?>">
-                        <div class="user-card-header">
-                            <span class="user-card-status registered">Registered</span>
-                            <span class="user-card-role"><?= htmlspecialchars(str_replace(' ', '_', strtoupper($u['role']))) ?></span>
-                        </div>
-                        <div class="user-card-details">
-                            <p class="user-card-name"><?= htmlspecialchars($u['first_name'] . ' ' . $u['last_name']) ?></p>
-                            <p class="user-card-info"><?= htmlspecialchars($u['faculty_id']) ?></p>
-                            <p class="user-card-info"><?= htmlspecialchars($u['email']) ?></p>
-                        </div>
-                        <div class="user-card-registered-status">
-                            <div>
-                                <i class="fa-solid fa-check-circle"></i>
-                                <span>Registered</span>
+    <div class="card registered-users-section" style="margin-top: 2rem;">
+        <div class="card-header card-header-flex" style="justify-content: space-between; align-items: center; cursor: pointer;" onclick="toggleRegisteredUsers()">
+            <h3><i class="fa-solid fa-user-check"></i> Registered Users (<?= count($registeredUserList) ?>)</h3>
+            <i class="fa-solid fa-chevron-down" id="registeredToggleIcon"></i>
+        </div>
+        
+        <div class="card-body" id="registeredUsersContainer" style="display: none;">
+            <?php if (empty($registeredUserList)): ?>
+                <div class="empty-state">
+                    <i class="fa-solid fa-user-slash" style="font-size: 3rem; color: var(--gray-400); margin-bottom: 1rem;"></i>
+                    <p style="color: var(--gray-600);">No users have completed fingerprint registration yet.</p>
+                </div>
+            <?php else: ?>
+                <div class="user-cards-container">
+                    <?php foreach ($registeredUserList as $u): ?>
+                        <div class="user-card" data-search-term="<?= strtolower(htmlspecialchars($u['first_name'] . ' ' . $u['last_name'] . ' ' . $u['faculty_id'] . ' ' . $u['email'])) ?>">
+                            <div class="user-card-header">
+                                <span class="user-card-status registered">Registered</span>
+                                <span class="user-card-role"><?= htmlspecialchars(str_replace(' ', '_', strtoupper($u['role']))) ?></span>
                             </div>
-                            <?php if (!empty($u['fingerprint_registered_at'])): ?>
-                                <span class="registration-date">
-                                    <?= date('M d, Y g:i A', strtotime($u['fingerprint_registered_at'])) ?>
-                                </span>
-                            <?php endif; ?>
+                            <div class="user-card-details">
+                                <p class="user-card-name"><?= htmlspecialchars($u['first_name'] . ' ' . $u['last_name']) ?></p>
+                                <p class="user-card-info"><?= htmlspecialchars($u['faculty_id']) ?></p>
+                                <p class="user-card-info"><?= htmlspecialchars($u['email']) ?></p>
+                            </div>
+                            <div class="user-card-registered-status">
+                                <div>
+                                    <i class="fa-solid fa-check-circle"></i>
+                                    <span>Registered</span>
+                                </div>
+                                <?php if (!empty($u['fingerprint_registered_at'])): ?>
+                                    <span class="registration-date">
+                                        <?= date('M d, Y', strtotime($u['fingerprint_registered_at'])) ?>
+                                    </span>
+                                <?php endif; ?>
+                            </div>
                         </div>
-                    </div>
-                <?php endforeach; ?>
-            </div>
-        <?php endif; ?>
+                    <?php endforeach; ?>
+                </div>
+            <?php endif; ?>
+        </div>
     </div>
 </div>
 
@@ -147,6 +151,21 @@ require_once __DIR__ . '/partials/header.php';
 </div>
 
 <script>
+// Toggle Function for Registered Users
+function toggleRegisteredUsers() {
+    const container = document.getElementById('registeredUsersContainer');
+    const icon = document.getElementById('registeredToggleIcon');
+    
+    if (container.style.display === 'none') {
+        container.style.display = 'block';
+        icon.style.transform = 'rotate(180deg)';
+    } else {
+        container.style.display = 'none';
+        icon.style.transform = 'rotate(0deg)';
+    }
+}
+
+// Modal Helper Functions
 function openModal(modalId) {
     const modal = document.getElementById(modalId);
     if (modal) modal.style.display = 'flex';
@@ -156,6 +175,7 @@ function closeModal(modalId) {
     if (modal) modal.style.display = 'none';
 }
 
+// Search Functionality
 document.addEventListener('DOMContentLoaded', function() {
     const searchInput = document.getElementById('userSearchInput');
     const userCards = document.querySelectorAll('.user-card');
@@ -175,6 +195,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
+// Notification Logic
 function sendNotifications() {
     const notifyBtn = document.getElementById('confirmNotifyBtn');
     const statusMessage = document.getElementById('notify-status-message');
@@ -184,12 +205,9 @@ function sendNotifications() {
     statusMessage.innerHTML = '';
     statusMessage.className = '';
 
-    // UPDATED FETCH CALL FOR MVC API
     fetch('api.php?action=notify_pending_users', {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        }
+        headers: { 'Content-Type': 'application/json' }
     })
     .then(response => response.json())
     .then(data => {
@@ -197,7 +215,6 @@ function sendNotifications() {
             statusMessage.textContent = data.message;
             statusMessage.className = 'alert alert-success';
             notifyBtn.innerHTML = '<i class="fa-solid fa-check"></i> Done';
-
             setTimeout(() => {
                 closeModal('notifyModal');
                 notifyBtn.disabled = false;

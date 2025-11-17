@@ -71,8 +71,8 @@ require_once __DIR__ . '/partials/header.php';
 
 <div id="deviceErrorModal" class="modal">
     <div class="modal-content modal-small">
-        <div class="modal-header" style="background-color: var(--red-50);">
-            <h3 style="color: var(--red-700);"><i class="fa-solid fa-triangle-exclamation"></i> Device Error</h3>
+        <div class="modal-header">
+            <h3><i class="fa-solid fa-triangle-exclamation"></i> Device Error</h3>
             <button type="button" class="modal-close" onclick="closeModal('deviceErrorModal')"><i class="fa-solid fa-times"></i></button>
         </div>
         <div class="modal-body">
@@ -86,8 +86,8 @@ require_once __DIR__ . '/partials/header.php';
 
 <div id="retryConnectionModal" class="modal">
     <div class="modal-content modal-small">
-        <div class="modal-header" style="background-color: var(--blue-50);">
-            <h3 style="color: var(--blue-700);">Retry Connection?</h3>
+        <div class="modal-header">
+            <h3>Retry Connection?</h3>
             <button type="button" class="modal-close" onclick="closeModal('retryConnectionModal')"><i class="fa-solid fa-times"></i></button>
         </div>
         <div class="modal-body"><p>Device still not detected.</p></div>
@@ -100,8 +100,8 @@ require_once __DIR__ . '/partials/header.php';
 
 <div id="scanNoticeModal" class="modal">
     <div class="modal-content modal-small">
-        <div class="modal-header" style="background-color: var(--yellow-50);">
-            <h3 style="color: var(--yellow-700);">Ready to Scan</h3>
+        <div class="modal-header">
+            <h3>Ready to Scan</h3>
             <button type="button" class="modal-close" onclick="closeModal('scanNoticeModal')"><i class="fa-solid fa-times"></i></button>
         </div>
         <div class="modal-body"><p>Press Proceed to start the 3-step scan.</p></div>
@@ -114,8 +114,8 @@ require_once __DIR__ . '/partials/header.php';
 
 <div id="scanFailedModal" class="modal">
     <div class="modal-content modal-small">
-        <div class="modal-header" style="background-color: var(--yellow-50);">
-            <h3 style="color: var(--yellow-700);">Scan Failed</h3>
+        <div class="modal-header">
+            <h3>Scan Failed</h3>
             <button type="button" class="modal-close" onclick="closeModal('scanFailedModal')"><i class="fa-solid fa-times"></i></button>
         </div>
         <div class="modal-body">

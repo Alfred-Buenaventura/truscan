@@ -180,12 +180,12 @@ require_once __DIR__ . '/partials/header.php';
                 <div class="card-body">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
                         <h3 style="margin: 0;">All Active Accounts</h3>
-                        <button class="btn btn-secondary" onclick="openArchivedModal()">
+                        <button class="btn btn-warning" onclick="openArchivedModal()">
                             <i class="fa-solid fa-archive"></i>
                             View Archived Accounts (<?= count($archivedUsers) ?>)
                         </button>
                     </div>
-                    
+
                     <table class="data-table">
                         <thead>
                             <tr>
@@ -210,16 +210,8 @@ require_once __DIR__ . '/partials/header.php';
                                             <?php 
                                             // Helper to safe encode data for JS function calls
                                             $name = $user['first_name'] . ' ' . $user['last_name'];
-                                            $jsData = [
-                                                'id' => $user['id'],
-                                                'first' => $user['first_name'],
-                                                'last' => $user['last_name'],
-                                                'middle' => $user['middle_name'],
-                                                'email' => $user['email'],
-                                                'phone' => $user['phone']
-                                            ];
                                             ?>
-                                            <button class="btn btn-sm" onclick="editUser(
+                                            <button class="btn btn-sm btn-primary" onclick="editUser(
                                                 <?= $user['id'] ?>, 
                                                 '<?= htmlspecialchars($user['first_name'], ENT_QUOTES) ?>', 
                                                 '<?= htmlspecialchars($user['last_name'], ENT_QUOTES) ?>', 
@@ -245,28 +237,6 @@ require_once __DIR__ . '/partials/header.php';
                             <?php endif; ?>
                         </tbody>
                     </table>
-
-                    <div id="editForm" style="display: none; margin-top: 2rem; border-top: 2px solid var(--gray-200); padding-top: 2rem;">
-                        <h4><i class="fa-solid fa-user-pen"></i> Edit User Information</h4>
-                        <form method="POST" style="margin-top: 1rem;">
-                            <input type="hidden" name="user_id" id="editUserId">
-                            <div class="form-grid">
-                                <div class="form-group"><label>First Name <span class="required">*</span></label><input type="text" name="first_name" id="editFirstName" class="form-control" required></div>
-                                <div class="form-group"><label>Last Name <span class="required">*</span></label><input type="text" name="last_name" id="editLastName" class="form-control" required></div>
-                                <div class="form-group"><label>Middle Name</label><input type="text" name="middle_name" id="editMiddleName" class="form-control"></div>
-                                <div class="form-group"><label>Email <span class="required">*</span></label><input type="email" name="email" id="editEmail" class="form-control" required></div>
-                                <div class="form-group"><label>Phone</label><input type="text" name="phone" id="editPhone" class="form-control"></div>
-                            </div>
-                            <div style="margin-top: 1.5rem; display: flex; gap: 0.75rem;">
-                                <button type="submit" name="edit_user" class="btn btn-primary">
-                                    <i class="fa-solid fa-save"></i> Update User
-                                </button>
-                                <button type="button" onclick="hideEditForm()" class="btn btn-secondary">
-                                    <i class="fa-solid fa-times"></i> Cancel
-                                </button>
-                            </div>
-                        </form>
-                    </div>
                 </div>
             </div>
         </div>
@@ -323,6 +293,49 @@ require_once __DIR__ . '/partials/header.php';
             </div>
         </div>
 
+        <div id="editUserModal" class="modal">
+            <div class="modal-content modal-small">
+                <div class="modal-header">
+                    <h3><i class="fa-solid fa-user-pen"></i> Edit User Information</h3>
+                    <button type="button" class="modal-close" onclick="closeModal('editUserModal')">
+                        <i class="fa-solid fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form method="POST">
+                        <input type="hidden" name="user_id" id="editUserId">
+                        <div class="form-group" style="margin-bottom: 1rem;">
+                            <label>First Name <span class="required">*</span></label>
+                            <input type="text" name="first_name" id="editFirstName" class="form-control" required>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 1rem;">
+                            <label>Last Name <span class="required">*</span></label>
+                            <input type="text" name="last_name" id="editLastName" class="form-control" required>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 1rem;">
+                            <label>Middle Name</label>
+                            <input type="text" name="middle_name" id="editMiddleName" class="form-control">
+                        </div>
+                        <div class="form-group" style="margin-bottom: 1rem;">
+                            <label>Email <span class="required">*</span></label>
+                            <input type="email" name="email" id="editEmail" class="form-control" required>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 1rem;">
+                            <label>Phone</label>
+                            <input type="text" name="phone" id="editPhone" class="form-control">
+                        </div>
+                        
+                        <div style="margin-top: 1.5rem; display: flex; justify-content: flex-end; gap: 0.75rem;">
+                            <button type="button" class="btn btn-secondary" onclick="closeModal('editUserModal')">Cancel</button>
+                            <button type="submit" name="edit_user" class="btn btn-primary">
+                                <i class="fa-solid fa-save"></i> Save Changes
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
         <div id="confirmModal" class="modal">
             <div class="modal-content modal-small">
                 <div class="modal-header">
@@ -345,7 +358,7 @@ require_once __DIR__ . '/partials/header.php';
         <div id="duplicateUserModal" class="modal">
             <div class="modal-content modal-small">
                 <div class="modal-header" style="background-color: var(--yellow-50);">
-                    <h3 style="color: var(--yellow-700);"><i class="fa-solid fa-triangle-exclamation"></i> Duplicate Account</h3>
+                    <h3><i class="fa-solid fa-triangle-exclamation"></i> Duplicate Account</h3>
                 </div>
                 <div class="modal-body">
                     <p class="fs-large" style="color: var(--gray-700);">
@@ -364,7 +377,7 @@ require_once __DIR__ . '/partials/header.php';
         <div id="doubleConfirmModal" class="modal">
             <div class="modal-content modal-small">
                 <div class="modal-header" style="background: var(--red-50);">
-                    <h3 style="color: var(--red-600);"><i class="fa-solid fa-triangle-exclamation"></i> Final Confirmation</h3>
+                    <h3><i class="fa-solid fa-triangle-exclamation"></i> Final Confirmation</h3>
                 </div>
                 <div class="modal-body">
                     <div style="background: var(--red-50); padding: 1rem; border-radius: 8px; margin-bottom: 1rem; border: 1px solid var(--red-600);">
@@ -505,7 +518,7 @@ window.showTab = function(event, tab) {
     }
 };
 
-/* Edit User Functions */
+/* UPDATED: Edit User Function (Opens Modal) */
 function editUser(id, firstName, lastName, middleName, email, phone) {
     document.getElementById('editUserId').value = id;
     document.getElementById('editFirstName').value = firstName || '';
@@ -514,16 +527,7 @@ function editUser(id, firstName, lastName, middleName, email, phone) {
     document.getElementById('editEmail').value = email || '';
     document.getElementById('editPhone').value = phone || '';
     
-    const form = document.getElementById('editForm');
-    if (form) {
-        form.style.display = 'block';
-        form.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }
-}
-
-function hideEditForm() {
-    const form = document.getElementById('editForm');
-    if (form) form.style.display = 'none';
+    openModal('editUserModal'); // Open the new modal
 }
 
 /* Archive/Restore/Delete Logic */

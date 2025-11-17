@@ -92,6 +92,10 @@ require_once __DIR__ . '/partials/header.php';
                         <i class="fa-solid fa-calendar-days" style="width: 20px; text-align: center; margin-right: 0.75rem; font-size: 1.2rem;"></i>
                         <span>Manage Schedules</span>
                     </a>
+                    <a href="display.php" target="_blank" class="btn btn-primary" style="padding: 1rem; text-align: left; justify-content: flex-start; font-size: 1rem; background-color: var(--blue-600); border-color: var(--blue-600);">
+                        <i class="fa-solid fa-desktop" style="width: 20px; text-align: center; margin-right: 0.75rem; font-size: 1.2rem;"></i>
+                        <span>Launch Kiosk Display</span>
+                    </a>
                 </div>
             </div>
         </div>

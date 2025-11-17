@@ -5,9 +5,11 @@ require_once __DIR__ . '/partials/header.php';
 <div class="main-body attendance-reports-page"> 
     
     <?php if ($isAdmin): ?>
-    <div class="report-header">
-        <div></div>
-        </div>
+    <div class="report-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+        <div></div> <a href="attendance_history.php" class="btn btn-secondary">
+            <i class="fa-solid fa-clock-rotate-left"></i> View Full History
+        </a>
+    </div>
     <?php endif; ?>
 
     <div class="report-stats-grid">
@@ -229,7 +231,7 @@ function openDtrModal(url, userName) {
             subtitle.textContent = "Previewing for: " + userName;
         }
         iframe.src = url;
-        openModal('dtrPreviewModal'); // Function defined in footer or main.js
+        openModal('dtrPreviewModal'); 
     }
 }
 
