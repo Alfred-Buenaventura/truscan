@@ -422,12 +422,36 @@ function addScheduleRow() {
     const div = document.createElement('div');
     div.className = 'schedule-entry-row';
     div.innerHTML = `
-        <select name="day_of_week[]" class="form-control form-group-day"><option>Monday</option>...</select>
-        <input type="text" name="subject[]" placeholder="Subject" class="form-control form-group-subject" required>
-        <input type="time" name="start_time[]" class="form-control form-group-time" required>
-        <input type="time" name="end_time[]" class="form-control form-group-time" required>
-        <input type="text" name="room[]" placeholder="Room" class="form-control form-group-room">
-        <button type="button" class="btn btn-danger" onclick="this.parentElement.remove()"><i class="fa-solid fa-times"></i></button>
+        <div class="form-group">
+            <label>Day</label>
+            <select name="day_of_week[]" class="form-control" required>
+                <option>Monday</option>
+                <option>Tuesday</option>
+                <option>Wednesday</option>
+                <option>Thursday</option>
+                <option>Friday</option>
+                <option>Saturday</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Subject</label>
+            <input type="text" name="subject[]" placeholder="Enter subject name" class="form-control" required>
+        </div>
+        <div class="form-group">
+            <label>Start Time</label>
+            <input type="time" name="start_time[]" class="form-control" required>
+        </div>
+        <div class="form-group">
+            <label>End Time</label>
+            <input type="time" name="end_time[]" class="form-control" required>
+        </div>
+        <div class="form-group form-group-room">
+            <label>Room <span style="font-size: 0.75rem; color: var(--gray-500);">(Optional)</span></label>
+            <input type="text" name="room[]" placeholder="e.g., Room 101" class="form-control">
+        </div>
+        <button type="button" class="btn btn-danger" onclick="this.parentElement.remove()" title="Remove">
+            <i class="fa-solid fa-times"></i>
+        </button>
     `;
     list.appendChild(div);
 }

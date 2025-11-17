@@ -1,8 +1,8 @@
 <?php 
-// FIX: Use __DIR__ to locate the partials folder correctly
 require_once __DIR__ . '/partials/header.php'; 
 ?>
 <?php if ($isAdmin): ?>
+    <!-- Admin Dashboard (unchanged) -->
     <div class="main-body">
         <div class="stats-grid">
             <div class="stat-card">
@@ -102,11 +102,22 @@ require_once __DIR__ . '/partials/header.php';
     </div>
 
 <?php else: ?>
+    <!-- USER DASHBOARD (Updated) -->
     <div class="main-body user-dashboard-body">
         
+        <!-- Link to History Page -->
+        <div style="display: flex; justify-content: flex-end; margin-bottom: 1rem;">
+            <a href="attendance_history.php" class="btn btn-secondary btn-sm">
+                <i class="fa-solid fa-clock-rotate-left"></i> View My Attendance History
+            </a>
+        </div>
+
         <div class="ud-grid">
+            <!-- Registration Status Card -->
             <div class="ud-card">
-                <h3 class="ud-card-title">Registration Status</h3>
+                <h3 class="ud-card-title emerald-header">
+                    <i class="fa-solid fa-clipboard-check"></i> Registration Status
+                </h3>
                 <div class="ud-card-content">
                     <div class="ud-card-row">
                         <span class="ud-card-label">Account Created</span>
@@ -123,13 +134,15 @@ require_once __DIR__ . '/partials/header.php';
                 </div>
             </div>
 
+            <!-- Today's Attendance Card -->
             <div class="ud-card">
-                <h3 class="ud-card-title">Today's Attendance</h3>
+                <h3 class="ud-card-title emerald-header">
+                    <i class="fa-solid fa-calendar-check"></i> Today's Attendance
+                </h3>
                 <div class="ud-card-content">
                     <div class="ud-card-row">
                         <span class="ud-card-label">Status</span>
                         <?php
-                            // Logic to determine status badge color
                             $status = $attendance['status'] ?? 'Not Present';
                             $statusClass = 'not-present';
                             if ($status === 'Present' || $status === 'On-time') $statusClass = 'completed';
@@ -151,10 +164,13 @@ require_once __DIR__ . '/partials/header.php';
                     </div>
                 </div>
             </div>
-        </div> 
+        </div>
 
+        <!-- My Recent Activity Card -->
         <div class="ud-card ud-activity-card">
-            <h3 class="ud-card-title">My Recent Activity</h3>
+            <h3 class="ud-card-title emerald-header">
+                <i class="fa-solid fa-history"></i> My Recent Activity
+            </h3>
             <div class="ud-card-content">
                 <?php if (empty($activityLogs)): ?>
                     <div class="ud-activity-empty">
@@ -179,6 +195,7 @@ require_once __DIR__ . '/partials/header.php';
              </div>
         </div>
 
+        <!-- Note Container -->
         <div class="page-hint-card">
             <div class="page-hint-icon">
                 <i class="fa-solid fa-lightbulb"></i>
@@ -186,7 +203,7 @@ require_once __DIR__ . '/partials/header.php';
             <div class="page-hint-content">
                 <h4>Note!</h4>
                 <p>
-                    This is your main dashboard. You can quickly see your registration status and check if your attendance for today has been recorded.
+                    This is your main dashboard. You can quickly see your registration status and check if your attendance for today has been recorded. Use the "View My Attendance History" button to see your complete attendance records.
                 </p>
             </div>
         </div>
