@@ -8,10 +8,10 @@
 require_once 'app/init.php';
 
 // Load necessary controllers
-require_once 'app/controllers/ApiController.php';
-require_once 'app/controllers/AttendanceController.php';
-require_once 'app/controllers/RegistrationController.php';
-require_once 'app/controllers/DisplayController.php';
+require_once 'app/controllers/apicontroller.php';
+require_once 'app/controllers/attendancecontroller.php';
+require_once 'app/controllers/registrationcontroller.php';
+require_once 'app/controllers/displaycontroller.php';
 
 $action = $_GET['action'] ?? '';
 
