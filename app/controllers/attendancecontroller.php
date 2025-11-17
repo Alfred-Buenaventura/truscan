@@ -40,6 +40,34 @@ class AttendanceController extends Controller {
         $this->view('attendance_view', $data);
     }
 
+    // --- NEW: History Dashboard Page ---
+    public function history() {
+        $this->requireLogin();
+        $attModel = $this->model('Attendance');
+        $userModel = $this->model('User');
+
+        $isAdmin = ($_SESSION['role'] === 'Admin');
+        
+        $filters = [
+            'user_id'     => $isAdmin ? ($_GET['user_id'] ?? '') : $_SESSION['user_id'],
+            'start_date'  => $_GET['start_date'] ?? date('Y-01-01'), // Default to current year
+            'end_date'    => $_GET['end_date']   ?? date('Y-m-d'),
+            'status_type' => $_GET['status_type'] ?? '' // Present, Late, Absent, or Empty (All)
+        ];
+
+        $data = [
+            'pageTitle' => 'Attendance History',
+            'pageSubtitle' => 'Detailed breakdown of attendance records',
+            'isAdmin' => $isAdmin,
+            'allUsers' => $isAdmin ? $userModel->getAllStaff() : [],
+            'filters' => $filters,
+            'stats' => $attModel->getHistoryStats($filters),
+            'records' => $attModel->getRecords($filters)
+        ];
+
+        $this->view('attendance_history_view', $data);
+    }
+
     public function export() {
         $this->requireLogin();
         $attModel = $this->model('Attendance');
@@ -112,12 +140,7 @@ class AttendanceController extends Controller {
         $this->view('print_dtr_view', $data);
     }
 
-    // --- NEW API METHODS ---
-
-    /**
-     * Fetches monthly attendance for DTR Editor (Admin only)
-     * Formerly: api/get_monthly_attendance.php
-     */
+    // API Methods (getMonthlyDtr, saveMonthlyDtr) remain unchanged...
     public function getMonthlyDtr() {
         $this->requireAdmin();
         header('Content-Type: application/json');
@@ -178,10 +201,6 @@ class AttendanceController extends Controller {
         exit;
     }
 
-    /**
-     * Saves edited monthly attendance (Admin only)
-     * Formerly: api/save_monthly_attendance.php
-     */
     public function saveMonthlyDtr() {
         $this->requireAdmin();
         header('Content-Type: application/json');
@@ -210,7 +229,6 @@ class AttendanceController extends Controller {
                 $status = !empty($rec['status']) ? $rec['status'] : null;
                 $remarks = !empty($rec['remarks']) ? $rec['remarks'] : null;
 
-                // Skip if all fields are empty and no record exists
                 if (empty($recordId) && empty($timeIn) && empty($timeOut) && empty($status) && empty($remarks)) {
                     continue;
                 }
@@ -219,7 +237,7 @@ class AttendanceController extends Controller {
                 if ($timeIn && $timeOut) {
                     $span = (new DateTime($timeOut))->getTimestamp() - (new DateTime($timeIn))->getTimestamp();
                     $workingHours = $span / 3600.0;
-                    if ($workingHours > 5) $workingHours -= 1; // 1 hour break deduction logic
+                    if ($workingHours > 5) $workingHours -= 1;
                 }
 
                 if (!empty($recordId)) {
@@ -233,7 +251,6 @@ class AttendanceController extends Controller {
 
             $conn->commit();
             
-            // Log activity (Optional)
             $logModel = $this->model('ActivityLog');
             $logModel->log($_SESSION['user_id'], 'DTR Edited', "Admin edited DTR for user ID $userId");
 
