@@ -72,22 +72,70 @@ document.addEventListener('click', function(e) {
         }
     }
 
-    // --- C. SIDEBAR TOGGLE ---
+    // --- C. SIDEBAR TOGGLE (Enhanced for Mobile) ---
     const sidebarToggle = e.target.closest('#sidebarToggle');
     if (sidebarToggle) {
         const sidebar = document.getElementById('sidebar');
         const dashboardContainer = document.getElementById('dashboardContainer');
         
         if (sidebar && dashboardContainer) {
-            sidebar.classList.toggle('collapsed');
-            dashboardContainer.classList.toggle('sidebar-collapsed');
+            // Check if we are on mobile (screen < 768px)
+            if (window.innerWidth <= 768) {
+                // Toggle mobile-specific class
+                dashboardContainer.classList.toggle('sidebar-mobile-open');
+            } else {
+                // Standard desktop collapse
+                sidebar.classList.toggle('collapsed');
+                dashboardContainer.classList.toggle('sidebar-collapsed');
+                
+                // Save desktop state
+                const isCollapsed = sidebar.classList.contains('collapsed');
+                localStorage.setItem('sidebarCollapsed', isCollapsed ? 'true' : 'false');
+            }
+        }
+    }
+
+    // --- D. CLOSE SIDEBAR ON MOBILE WHEN CLICKING OUTSIDE ---
+    if (window.innerWidth <= 768) {
+        const dashboardContainer = document.getElementById('dashboardContainer');
+        const sidebar = document.getElementById('sidebar');
+        
+        // If the sidebar is open AND the click was NOT on the sidebar or the toggle button
+        if (dashboardContainer.classList.contains('sidebar-mobile-open') && 
+            !sidebar.contains(e.target) && 
+            !e.target.closest('#sidebarToggle')) {
             
-            // Save state to LocalStorage so it persists across refreshes
-            const isCollapsed = sidebar.classList.contains('collapsed');
-            localStorage.setItem('sidebarCollapsed', isCollapsed ? 'true' : 'false');
+            dashboardContainer.classList.remove('sidebar-mobile-open');
         }
     }
 });
+
+// --- MOBILE MENU BUTTON LOGIC ---
+    const mobileBtn = document.getElementById('mobileMenuBtn');
+    
+    if (mobileBtn) {
+        mobileBtn.addEventListener('click', function(e) {
+            e.stopPropagation(); // Stop click from bubbling to document
+            const dbContainer = document.getElementById('dashboardContainer');
+            dbContainer.classList.toggle('sidebar-mobile-open');
+        });
+    }
+
+    // Close sidebar when clicking the overlay (Mobile)
+    document.addEventListener('click', function(e) {
+        const dbContainer = document.getElementById('dashboardContainer');
+        const sidebar = document.getElementById('sidebar');
+        const mobileBtn = document.getElementById('mobileMenuBtn');
+
+        // If menu is open, and we clicked OUTSIDE the sidebar and OUTSIDE the button
+        if (window.innerWidth <= 768 && 
+            dbContainer.classList.contains('sidebar-mobile-open') && 
+            !sidebar.contains(e.target) && 
+            (!mobileBtn || !mobileBtn.contains(e.target))) {
+            
+            dbContainer.classList.remove('sidebar-mobile-open');
+        }
+    });
 
 
 /* =========================================
@@ -185,7 +233,7 @@ function initScannerSocket(widget) {
 
     // Attempt to connect to the local WebSocket Bridge (C# App)
     try {
-        const socket = new WebSocket("ws://127.0.0.1:8080");
+        const socket = new WebSocket("wss://127.0.0.1:8080");
         
         socket.onopen = () => {
             setStatus(true);
