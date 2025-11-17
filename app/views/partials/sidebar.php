@@ -43,6 +43,21 @@
             <i class="fa-solid fa-calendar-days nav-icon"></i>
             <span class="nav-text">Schedule Management</span>
         </a>
+        
+        <!-- NEW: Notifications Button -->
+        <button type="button" class="nav-item nav-item-button" onclick="openModal('notificationsModal')" id="notificationsBtn">
+            <i class="fa-solid fa-bell nav-icon"></i>
+            <span class="nav-text">Notifications</span>
+            <?php
+            // Get unread notification count
+            $db = new Database();
+            $stmt = $db->query("SELECT COUNT(*) as count FROM notifications WHERE user_id = ? AND is_read = 0", [$_SESSION['user_id']], "i");
+            $unreadCount = $stmt->get_result()->fetch_assoc()['count'] ?? 0;
+            if ($unreadCount > 0):
+            ?>
+            <span class="notification-badge"><?= $unreadCount ?></span>
+            <?php endif; ?>
+        </button>
     </nav>
 
     <div class="sidebar-footer">
@@ -85,3 +100,101 @@
 </div>
 
 </aside>
+
+<!-- Notifications Modal -->
+<div id="notificationsModal" class="modal">
+    <div class="modal-content modal-small">
+        <div class="modal-header">
+            <h3><i class="fa-solid fa-bell"></i> Notifications</h3>
+            <button type="button" class="modal-close" onclick="closeModal('notificationsModal')">
+                <i class="fa-solid fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body" style="max-height: 60vh; overflow-y: auto;">
+            <?php
+            // Fetch all notifications for the current user
+            $db = new Database();
+            $stmt = $db->query(
+                "SELECT * FROM notifications WHERE user_id = ? ORDER BY created_at DESC LIMIT 20", 
+                [$_SESSION['user_id']], 
+                "i"
+            );
+            $notifications = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+            
+            if (empty($notifications)):
+            ?>
+                <div style="text-align: center; padding: 3rem; color: var(--gray-500);">
+                    <i class="fa-solid fa-bell-slash" style="font-size: 3rem; margin-bottom: 1rem; display: block;"></i>
+                    <p>No notifications yet</p>
+                </div>
+            <?php else: ?>
+                <div class="notifications-list">
+                    <?php foreach ($notifications as $notif): ?>
+                        <div class="notification-item <?= $notif['is_read'] ? 'read' : 'unread' ?>" 
+                             data-id="<?= $notif['id'] ?>">
+                            <div class="notification-icon <?= $notif['type'] ?>">
+                                <?php
+                                $icon = 'fa-info-circle';
+                                if ($notif['type'] === 'success') $icon = 'fa-check-circle';
+                                if ($notif['type'] === 'warning') $icon = 'fa-exclamation-triangle';
+                                if ($notif['type'] === 'error') $icon = 'fa-times-circle';
+                                ?>
+                                <i class="fa-solid <?= $icon ?>"></i>
+                            </div>
+                            <div class="notification-content">
+                                <p><?= htmlspecialchars($notif['message']) ?></p>
+                                <span class="notification-time">
+                                    <?= date('M d, Y g:i A', strtotime($notif['created_at'])) ?>
+                                </span>
+                            </div>
+                            <?php if (!$notif['is_read']): ?>
+                            <button class="notification-mark-read" onclick="markAsRead(<?= $notif['id'] ?>)" title="Mark as read">
+                                <i class="fa-solid fa-check"></i>
+                            </button>
+                            <?php endif; ?>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            <?php endif; ?>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeModal('notificationsModal')">Close</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// Mark notification as read
+function markAsRead(notificationId) {
+    fetch('api.php?action=mark_notification_read', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ notification_id: notificationId })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Update UI
+            const notifItem = document.querySelector(`.notification-item[data-id="${notificationId}"]`);
+            if (notifItem) {
+                notifItem.classList.remove('unread');
+                notifItem.classList.add('read');
+                const markBtn = notifItem.querySelector('.notification-mark-read');
+                if (markBtn) markBtn.remove();
+            }
+            
+            // Update badge count
+            const badge = document.querySelector('#notificationsBtn .notification-badge');
+            if (badge) {
+                let count = parseInt(badge.textContent) - 1;
+                if (count <= 0) {
+                    badge.remove();
+                } else {
+                    badge.textContent = count;
+                }
+            }
+        }
+    })
+    .catch(err => console.error('Error marking notification as read:', err));
+}
+</script>
