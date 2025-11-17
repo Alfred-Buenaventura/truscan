@@ -203,75 +203,136 @@ $currentYear = date("Y");
             });
         }
 
-        // --- WebSocket Connection (Unchanged) ---
-        function connectWebSocket() {
-            const socket = new WebSocket("ws://127.0.0.1:8080/");
+        // --- WebSocket Connection (FIXED VERSION) ---
+function connectWebSocket() {
+    // Try WebSocket connection
+    const socket = new WebSocket("ws://127.0.0.1:8080/");
+    
+    let reconnectTimeout;
+    let isConnected = false;
 
-            socket.onopen = () => {
-                console.log("Display connected. Requesting verification start...");
-                defaultStateP.textContent = "Connecting to scanner...";
-                // Tell the bridge app to start verification mode
-                socket.send(JSON.stringify({ command: "verify_start" }));
-            };
-
-            socket.onmessage = (event) => {
-                try {
-                    const data = JSON.parse(event.data);
-                    
-                    // --- Listen for verification_success ---
-                    if (data.type === "verification_success") {
-                        console.log("Verification success received, User ID:", data.user_id);
-                        recordAttendance(data.user_id);
-                    }
-                    // --- Listen for verification_fail ---
-                    else if (data.type === "verification_fail") {
-                        console.warn("Verification failed:", data.message);
-                        const now = new Date();
-                        showScanEvent({
-                            name: "Scan Failed",
-                            status: "Finger not recognized",
-                            full_timestamp: now,
-                            time: now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }),
-                            date: now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })
-                        });
-                    }
-                    // Listen for status messages from the bridge
-                    else if (data.status === "info") {
-                        console.log("Bridge info:", data.message);
-                        if (data.message.includes("Verification active")) {
-                            defaultStateP.textContent = "Please scan your fingerprint";
-                        }
-                    }
-                    // Listen for error messages from the bridge
-                    else if (data.status === "error") {
-                        console.error("Bridge error:", data.message);
-                        defaultStateP.textContent = "Scanner Error: " + data.message;
-                    }
-
-                } catch (e) {
-                    console.error("Error parsing message:", e);
-                }
-            };
-
-            socket.onerror = (err) => {
-                console.error("WebSocket error. Check if ZKTecoBridge.exe is running.");
-                defaultStateP.textContent = "Scanner service disconnected";
-            };
-
-            socket.onclose = () => {
-                console.log("WebSocket closed. Reconnecting in 5 seconds...");
-                defaultStateP.textContent = "Connection lost. Retrying...";
-                setTimeout(connectWebSocket, 5000);
-            };
+    socket.onopen = () => {
+        console.log("✅ Display connected to bridge successfully");
+        isConnected = true;
+        defaultStateP.textContent = "Please scan your fingerprint";
+        
+        // Clear any pending reconnect attempts
+        if (reconnectTimeout) {
+            clearTimeout(reconnectTimeout);
         }
+        
+        // Tell the bridge app to start verification mode
+        socket.send(JSON.stringify({ command: "verify_start" }));
+    };
 
-        // --- Start all components when the page loads ---
-        document.addEventListener('DOMContentLoaded', () => {
-            updateClock(); // Initial clock update
-            loadSlideshow(); // Load images into the background
-            connectWebSocket(); // Start scanner connection
+    socket.onmessage = (event) => {
+        try {
+            const data = JSON.parse(event.data);
+            console.log("📨 Message received:", data);
+            
+            // --- Listen for verification_success ---
+            if (data.type === "verification_success") {
+                console.log("✅ Verification success, User ID:", data.user_id);
+                recordAttendance(data.user_id);
+            }
+            // --- Listen for verification_fail ---
+            else if (data.type === "verification_fail") {
+                console.warn("❌ Verification failed:", data.message);
+                const now = new Date();
+                showScanEvent({
+                    name: "Scan Failed",
+                    status: "Finger not recognized",
+                    full_timestamp: now.toISOString(),
+                    time: now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }),
+                    date: now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })
+                });
+            }
+            // Listen for status messages from the bridge
+            else if (data.status === "info") {
+                console.log("ℹ️ Bridge info:", data.message);
+                if (data.message && data.message.includes("Verification active")) {
+                    defaultStateP.textContent = "Please scan your fingerprint";
+                }
+            }
+            // Listen for error messages from the bridge
+            else if (data.status === "error") {
+                console.error("⚠️ Bridge error:", data.message);
+                defaultStateP.textContent = "Scanner Error: " + data.message;
+            }
+
+        } catch (e) {
+            console.error("❌ Error parsing WebSocket message:", e);
+        }
+    };
+
+    socket.onerror = (err) => {
+        console.error("❌ WebSocket error. Is ZKTecoBridge.exe running?", err);
+        defaultStateP.textContent = "Scanner service disconnected";
+        isConnected = false;
+    };
+
+    socket.onclose = (event) => {
+        console.log("🔌 WebSocket closed. Code:", event.code, "Reason:", event.reason);
+        isConnected = false;
+        defaultStateP.textContent = "Connection lost. Retrying...";
+        
+        // Attempt to reconnect after 5 seconds
+        reconnectTimeout = setTimeout(() => {
+            console.log("🔄 Attempting to reconnect...");
+            connectWebSocket();
+        }, 5000);
+    };
+    
+    // Return socket for potential cleanup
+    return socket;
+}
+
+// --- NEW: Function to call the backend API (FIXED) ---
+function recordAttendance(userId) {
+    console.log("📤 Sending attendance record for user ID:", userId);
+    
+    fetch("api/record_attendance.php", {
+        method: "POST",
+        headers: { 
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ user_id: userId })
+    })
+    .then(response => {
+        console.log("📥 Response status:", response.status);
+        return response.json();
+    })
+    .then(data => {
+        console.log("📊 Backend response:", data);
+        
+        if (data.success && data.data) {
+            // Success - show the attendance card
+            showScanEvent(data.data);
+        } else {
+            // API returned success:false
+            console.error("❌ Backend error:", data.message);
+            const now = new Date();
+            showScanEvent({
+                name: "System Error",
+                status: data.message || "Contact Admin",
+                full_timestamp: now.toISOString(),
+                time: now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }),
+                date: now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })
+            });
+        }
+    })
+    .catch(err => {
+        console.error("❌ AJAX/Network error:", err);
+        const now = new Date();
+        showScanEvent({
+            name: "Network Error",
+            status: "Check Connection",
+            full_timestamp: now.toISOString(),
+            time: now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }),
+            date: now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })
         });
-
+    });
+}
     </script>
 </body>
 </html>
