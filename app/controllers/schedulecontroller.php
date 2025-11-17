@@ -19,28 +19,19 @@ class ScheduleController extends Controller {
             'isAdmin' => $isAdmin,
             'error' => '',
             'success' => '',
-            'activeTab' => 'manage' // Default tab
+            'activeTab' => 'manage' 
         ];
 
-        // --- HANDLE POST ACTIONS ---
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            
-            // 1. Add Schedule
             if (isset($_POST['add_schedule'])) {
                 $this->handleAdd($userId, $isAdmin, $scheduleModel, $logModel, $data);
             }
-            
-            // 2. Edit Schedule
             if (isset($_POST['edit_schedule'])) {
                 $this->handleEdit($userId, $isAdmin, $scheduleModel, $logModel, $data);
             }
-
-            // 3. Delete Schedule
             if (isset($_POST['delete_schedule'])) {
                 $this->handleDelete($userId, $isAdmin, $scheduleModel, $logModel, $data);
             }
-
-            // 4. Approve/Decline (Admin Only)
             if (isset($_POST['approve_schedule']) && $isAdmin) {
                 $this->handleStatusChange($_POST['schedule_id'], 'approved', $_POST['user_id'], $_POST['subject'], $scheduleModel, $logModel, $notifModel, $data);
             }
@@ -49,53 +40,42 @@ class ScheduleController extends Controller {
             }
         }
 
-        // --- PREPARE VIEW DATA ---
-        
-        // Filters
         $filters = [
             'day_of_week' => $_GET['day_of_week'] ?? '',
             'user_id' => ($isAdmin) ? ($_GET['user_id'] ?? '') : $userId
         ];
 
-        // Fetch Data
         $data['users'] = ($isAdmin) ? $userModel->getAllStaff() : [];
         $data['selectedUserId'] = $filters['user_id'];
         $data['filters'] = $filters;
-
-        // Pending Schedules
         $data['pendingSchedules'] = $scheduleModel->getPending($isAdmin ? null : $userId);
 
-        // Approved Schedules (Raw)
         $approvedRaw = $scheduleModel->getApproved($filters, $isAdmin);
-        $data['approvedSchedules'] = $approvedRaw; // Flat list for default view
+        $data['approvedSchedules'] = $approvedRaw; 
 
-        // --- LOGIC FOR "ALL USERS" ACCORDION (Admin Only) ---
         if ($isAdmin && empty($filters['user_id'])) {
             $data['groupedApprovedSchedules'] = $this->groupSchedulesByUser($approvedRaw);
             $data['stats'] = $scheduleModel->getGeneralStats();
         } 
-        // --- LOGIC FOR SINGLE USER STATS ---
         elseif (!empty($filters['user_id'])) {
-            // We need ALL schedules for stats, not just filtered ones
             $allSchedules = $scheduleModel->getApproved(['user_id' => $filters['user_id']], $isAdmin);
             $data['userStats'] = $this->calculateUserStats($allSchedules);
             
             if ($isAdmin) {
                 $data['selectedUserInfo'] = $userModel->findById($filters['user_id']);
             } else {
-                // For regular user, info comes from session
+                // --- FIX START: Handle missing session keys gracefully ---
                 $data['selectedUserInfo'] = [
-                    'first_name' => $_SESSION['first_name'],
-                    'last_name' => $_SESSION['last_name'],
-                    'faculty_id' => $_SESSION['faculty_id']
+                    'first_name' => $_SESSION['first_name'] ?? 'User', 
+                    'last_name' => $_SESSION['last_name'] ?? '',
+                    'faculty_id' => $_SESSION['faculty_id'] ?? ''
                 ];
+                // --- FIX END ---
             }
         }
 
         $this->view('schedule_view', $data);
     }
-
-    // --- PRIVATE HELPER METHODS ---
 
     private function handleAdd($userId, $isAdmin, $model, $logModel, &$data) {
         if ($isAdmin) {
@@ -153,19 +133,14 @@ class ScheduleController extends Controller {
 
     private function handleStatusChange($id, $status, $targetId, $subject, $model, $logModel, $notifModel, &$data) {
         if ($model->setStatus($id, $status)) {
-            $action = ucfirst($status); // Approved/Declined
+            $action = ucfirst($status); 
             $logModel->log($_SESSION['user_id'], "Schedule $action", "ID: $id");
             $notifModel->create($targetId, "Your schedule for '$subject' has been $status.", ($status == 'approved' ? 'success' : 'warning'));
-            
-            // Fetch email to send notification (Optional, implies User Model load)
-            // sendEmail(...) 
             
             $data['success'] = "Schedule $status successfully.";
             $data['activeTab'] = 'pending';
         }
     }
-
-    // --- STAT CALCULATION HELPERS ---
 
     private function calculateUserStats($schedules) {
         $grouped = [];
@@ -220,7 +195,6 @@ class ScheduleController extends Controller {
             $grouped[$uid]['schedules'][] = $sched;
         }
 
-        // Calculate stats for each group
         foreach ($grouped as $uid => &$userData) {
             $userData['stats'] = $this->calculateUserStats($userData['schedules']);
         }
