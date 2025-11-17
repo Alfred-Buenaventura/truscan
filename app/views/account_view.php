@@ -185,7 +185,7 @@ require_once __DIR__ . '/partials/header.php';
                             View Archived Accounts (<?= count($archivedUsers) ?>)
                         </button>
                     </div>
-
+                    
                     <table class="data-table">
                         <thead>
                             <tr>
