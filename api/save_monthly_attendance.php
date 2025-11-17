@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/../core/Controller.php';
+require_once __DIR__ . '/../core/controller.php';
 
 $data = json_decode(file_get_contents('php://input'), true);
 $userId = $data['user_id'] ?? 0;
@@ -69,7 +69,7 @@ try {
     $db->commit();
     
     //Log the entire batch edit as one action
-require_once __DIR__ . '/../models/ActivityLog.php'; // Ensure class is loaded
+require_once __DIR__ . '/../models/cctivitylog.php'; // Ensure class is loaded
 $activityLog = new ActivityLog();
 $activityLog->log(
     $adminId, 
