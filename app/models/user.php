@@ -1,5 +1,6 @@
 <?php
-require_once __DIR__ . '/../core/Database.php';
+// LOWERCASE REQUIRE
+require_once __DIR__ . '/../core/database.php';
 
 class User {
     private $db;
@@ -24,7 +25,9 @@ class User {
     // --- PROFILE UPDATES ---
     public function updateProfile($id, $firstName, $lastName, $middleName, $email, $phone) {
         $sql = "UPDATE users SET first_name=?, last_name=?, middle_name=?, email=?, phone=? WHERE id=?";
-        return $this->db->query($sql, [$firstName, $lastName, $middleName, $email, $phone, $id], "sssssi");
+        // The database.php update makes this safe now
+        $stmt = $this->db->query($sql, [$firstName, $lastName, $middleName, $email, $phone, $id], "sssssi");
+        return $stmt->affected_rows >= 0;
     }
 
     // --- DASHBOARD STATS ---
@@ -44,7 +47,7 @@ class User {
         return $row['fingerprint_registered'] ?? 0;
     }
 
-    // --- ACCOUNT MANAGEMENT (Admin CRUD) ---
+    // --- ACCOUNT MANAGEMENT ---
     public function exists($facultyId) {
         $sql = "SELECT id FROM users WHERE faculty_id = ?";
         $res = $this->db->query($sql, [$facultyId], "s");
@@ -53,7 +56,7 @@ class User {
 
     public function create($data) {
         $sql = "INSERT INTO users (faculty_id, username, password, first_name, last_name, middle_name, email, phone, role, force_password_change) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1)";
-        $this->db->query($sql, [
+        $stmt = $this->db->query($sql, [
             $data['faculty_id'],
             $data['username'],
             $data['password'],
@@ -67,20 +70,22 @@ class User {
         return $this->db->conn->insert_id;
     }
 
-    // Generic update for Admin (Same as updateProfile but public/generic name)
     public function update($id, $firstName, $lastName, $middleName, $email, $phone) {
         $sql = "UPDATE users SET first_name=?, last_name=?, middle_name=?, email=?, phone=? WHERE id=?";
-        return $this->db->query($sql, [$firstName, $lastName, $middleName, $email, $phone, $id], "sssssi");
+        $this->db->query($sql, [$firstName, $lastName, $middleName, $email, $phone, $id], "sssssi");
+        return true;
     }
 
     public function setStatus($id, $status) {
         $sql = "UPDATE users SET status=? WHERE id=?";
-        return $this->db->query($sql, [$status, $id], "si");
+        $this->db->query($sql, [$status, $id], "si");
+        return true;
     }
 
     public function delete($id) {
         $sql = "DELETE FROM users WHERE id=?";
-        return $this->db->query($sql, [$id], "i");
+        $this->db->query($sql, [$id], "i");
+        return true;
     }
 
     public function getAllActive() {
@@ -102,15 +107,12 @@ class User {
         return $this->db->query($sql)->get_result()->fetch_assoc();
     }
     
-    // --- ATTENDANCE REPORTS (This was the missing method) ---
     public function getAllStaff() {
         $sql = "SELECT id, faculty_id, first_name, last_name FROM users WHERE status='active' AND role != 'Admin' ORDER BY first_name";
         return $this->db->query($sql)->get_result()->fetch_all(MYSQLI_ASSOC);
     }
 
     public function updateFingerprint($userId, $fingerprintData) {
-        // We update the data, set flag to 1, and update the timestamp
-        // (Adding the timestamp ensures complete_registration.php shows the correct date)
         $sql = "UPDATE users SET fingerprint_data=?, fingerprint_registered=1, fingerprint_registered_at=NOW() WHERE id=?";
         return $this->db->query($sql, [$fingerprintData, $userId], "si");
     }
@@ -121,15 +123,6 @@ class User {
 
     public function getRegisteredUsers() {
         return $this->db->query("SELECT * FROM users WHERE status='active' AND fingerprint_registered=1 ORDER BY first_name ASC")->get_result()->fetch_all(MYSQLI_ASSOC);
-    }
-    
-    // --- CREATE ADMIN ---
-    // Reuses the create() method but enforces 'Admin' role logic if needed specifically
-    // (The generic create() method already handles this, but this wrapper helps clarity)
-    public function createAdmin($data) {
-        // Ensure role is forced to Admin
-        $data['role'] = 'Admin'; 
-        return $this->create($data);
     }
 }
 ?>
