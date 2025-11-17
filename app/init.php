@@ -13,6 +13,9 @@ require_once __DIR__ . '/core/Controller.php';
 require_once __DIR__ . '/core/Helper.php';
 require_once __DIR__ . '/core/Mailer.php';
 
+// --- NEW: Load .env file ---
+Helper::loadEnv(__DIR__ . '/../.env');
+
 // 4. Load Models (Optional: You can load these in controllers, but loading common ones here helps)
 require_once __DIR__ . '/models/User.php';
 require_once __DIR__ . '/models/ActivityLog.php';
