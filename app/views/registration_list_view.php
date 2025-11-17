@@ -16,27 +16,21 @@ require_once __DIR__ . '/partials/header.php';
 
     <div class="registration-stats-grid">
         <div class="reg-stat-card total-users">
-            <div class="reg-stat-icon">
-                <i class="fa-solid fa-users"></i>
-            </div>
+            <div class="reg-stat-icon"><i class="fa-solid fa-users"></i></div>
             <div class="reg-stat-details">
                 <p>Total Users</p>
                 <span class="reg-stat-value"><?= $totalUsers ?></span>
             </div>
         </div>
         <div class="reg-stat-card registered">
-            <div class="reg-stat-icon">
-                <i class="fa-solid fa-user-check"></i>
-            </div>
+            <div class="reg-stat-icon"><i class="fa-solid fa-user-check"></i></div>
             <div class="reg-stat-details">
                 <p>Registered</p>
                 <span class="reg-stat-value"><?= $registeredUsersCount ?></span>
             </div>
         </div>
         <div class="reg-stat-card pending">
-            <div class="reg-stat-icon">
-                <i class="fa-solid fa-user-clock"></i>
-            </div>
+            <div class="reg-stat-icon"><i class="fa-solid fa-user-clock"></i></div>
             <div class="reg-stat-details">
                 <p>Pending</p>
                 <span class="reg-stat-value"><?= $pendingCount ?></span>
@@ -45,7 +39,6 @@ require_once __DIR__ . '/partials/header.php';
     </div>
 
     <div class="pending-registrations-section">
-
         <div class="card-header-flex" style="margin-bottom: 1.5rem; align-items: center;">
             <h3 class="section-title" style="margin: 0;">Pending Registrations (<?= $pendingCount ?>)</h3>
             <button class="btn btn-primary" onclick="openModal('notifyModal')" <?= empty($pendingUsers) ? 'disabled' : '' ?>>
@@ -86,11 +79,9 @@ require_once __DIR__ . '/partials/header.php';
     </div>
 
     <div class="registered-users-section" style="margin-top: 2.5rem;">
-
         <h3 class="section-title" style="margin-bottom: 1.5rem;">
             Registered Users (<?= count($registeredUserList) ?>)
         </h3>
-
         <?php if (empty($registeredUserList)): ?>
             <div class="empty-state-card">
                 <i class="fa-solid fa-user-slash empty-icon"></i>
@@ -172,7 +163,6 @@ document.addEventListener('DOMContentLoaded', function() {
     if (searchInput) {
         searchInput.addEventListener('input', function() {
             const searchTerm = this.value.toLowerCase().trim();
-
             userCards.forEach(card => {
                 const cardSearchTerm = card.getAttribute('data-search-term');
                 if (cardSearchTerm && cardSearchTerm.includes(searchTerm)) {
@@ -194,8 +184,8 @@ function sendNotifications() {
     statusMessage.innerHTML = '';
     statusMessage.className = '';
 
-    // We fetch the NEW routed path for notification
-    fetch('notify_pending_users.php', {
+    // UPDATED FETCH CALL FOR MVC API
+    fetch('api.php?action=notify_pending_users', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
