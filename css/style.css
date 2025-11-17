@@ -4416,3 +4416,428 @@ body.dtr-body .print-controls {
         padding: 1.25rem !important;
     }
 }
+
+/* =========================================
+   UPDATED CARD HEADERS (Emerald Theme)
+   ========================================= */
+
+.card-header {
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--emerald-700); /* Darker border for blend */
+    background: var(--emerald-600); /* Emerald Green Background */
+    border-radius: 16px 16px 0 0; /* Ensure rounded top corners match card */
+}
+
+/* Headings inside the header (e.g., "Recent Activity") */
+.card-header h2,
+.card-header h3 {
+    font-size: 1.15rem;
+    color: white !important; /* Force white text */
+    font-weight: 600;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Subtitles inside the header */
+.card-header p {
+    color: var(--emerald-100) !important; /* Light green text for subtitles */
+    font-size: 0.9rem;
+    margin-top: 0.25rem;
+}
+
+/* Icons inside the header */
+.card-header i, 
+.card-header svg {
+    color: white !important; /* Force white icons */
+}
+
+/* --- Specific Fixes for Other Headers --- */
+
+/* Login Page Header (Optional: Matches theme) */
+.login-new-header {
+    background: var(--emerald-600);
+}
+.login-new-header .login-title {
+    color: white;
+}
+.login-new-header .login-subtitle {
+    color: var(--emerald-100);
+}
+/* Login Logo Circle (White bg to stand out on green) */
+.login-logo-container {
+    background: white;
+    color: var(--emerald-600);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+/* Modal Headers (Consistency) */
+.modal-header {
+    background: var(--emerald-600);
+    border-bottom: 1px solid var(--emerald-700);
+}
+.modal-header h3 {
+    color: white !important;
+}
+.modal-header .modal-close {
+    color: var(--emerald-100);
+}
+.modal-header .modal-close:hover {
+    background: rgba(255,255,255,0.2);
+    color: white;
+}
+
+/* Adjust Filter Card Header (Attendance Reports) if separate */
+.filter-export-section .card-header {
+    background: var(--emerald-600);
+    color: white;
+}
+
+/* =========================================
+   EMERALD TABS STYLING
+   ========================================= */
+
+.tabs {
+    background: var(--emerald-600); /* Emerald Green Background */
+    border-bottom: 1px solid var(--emerald-700);
+    border-radius: 16px 16px 0 0; /* Rounded top corners */
+    padding: 0; /* Remove padding to let buttons fill space */
+}
+
+.tab-btn {
+    color: var(--emerald-100); /* Light green text for inactive tabs */
+    font-weight: 500;
+    opacity: 0.8;
+    border-bottom: 4px solid transparent; /* Reserve space for active line */
+    margin: 0;
+    border-radius: 0; /* Remove individual button radius */
+}
+
+.tab-btn:first-child {
+    border-top-left-radius: 16px;
+}
+
+.tab-btn:hover {
+    background: var(--emerald-500); /* Slightly lighter on hover */
+    color: white;
+    opacity: 1;
+}
+
+.tab-btn.active {
+    background: var(--emerald-700); /* Darker green for active tab */
+    color: white;
+    font-weight: 700;
+    opacity: 1;
+    border-bottom: 4px solid var(--yellow-400); /* Yellow underline for contrast */
+}
+
+/* Hide the old ::after pseudo-element if it exists from previous code */
+.tab-btn.active::after {
+    display: none;
+}
+
+/* =========================================
+   DARKER MODAL HEADERS (Warning & Danger)
+   ========================================= */
+
+/* Warning Modal (Dark Yellow/Orange) */
+.modal-header.warning {
+    background-color: #d97706 !important; /* Dark Yellow */
+    border-bottom: 1px solid #b45309;
+}
+.modal-header.warning h3, 
+.modal-header.warning i {
+    color: white !important;
+}
+.modal-header.warning .modal-close {
+    color: rgba(255,255,255,0.8);
+}
+.modal-header.warning .modal-close:hover {
+    background-color: rgba(255,255,255,0.2);
+    color: white;
+}
+
+/* Danger Modal (Dark Red) */
+.modal-header.danger {
+    background-color: var(--red-600) !important; /* Dark Red */
+    border-bottom: 1px solid var(--red-700);
+}
+.modal-header.danger h3,
+.modal-header.danger i {
+    color: white !important;
+}
+.modal-header.danger .modal-close {
+    color: rgba(255,255,255,0.8);
+}
+.modal-header.danger .modal-close:hover {
+    background-color: rgba(255,255,255,0.2);
+    color: white;
+}
+
+/* =========================================
+   MODAL FULL-WIDTH FIX
+   (Removes white gaps around headers)
+   ========================================= */
+
+.modal-content {
+    padding: 0 !important; /* Remove gap around edges */
+    border: none !important; /* Remove default borders */
+    overflow: hidden; /* Clip headers to rounded corners */
+}
+
+.modal-header {
+    margin: 0; /* Ensure no spacing */
+    width: 100%; /* Force full width */
+    border-top-left-radius: 0; /* Reset to let overflow:hidden handle it */
+    border-top-right-radius: 0;
+}
+
+.modal-footer {
+    margin: 0;
+    width: 100%;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+/* Ensure the body still has breathing room */
+.modal-body {
+    padding: 1.5rem !important; 
+}
+
+/* =========================================
+   HISTORY DASHBOARD CARDS
+   ========================================= */
+
+.history-card {
+    text-decoration: none; /* Remove underline from links */
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    border: 2px solid transparent; /* Invisible border for active state */
+}
+
+.history-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-strong);
+}
+
+/* Active State (Selected Filter) */
+.history-card.active-filter {
+    background-color: white;
+    border-color: var(--emerald-500); /* Green border for selection */
+    box-shadow: 0 0 15px rgba(16, 185, 129, 0.2);
+}
+
+/* Specific active colors based on card type */
+.history-card.active-filter .stat-value {
+    text-decoration: underline;
+}
+
+/* =========================================
+   SCHEDULE MANAGEMENT (CLEANER LOOK)
+   ========================================= */
+
+/* Stats Cards (Blue/Emerald Theme) */
+.stat-icon.blue { background: var(--blue-50); color: var(--blue-600); }
+.stat-value.blue { color: var(--blue-700); }
+
+/* Accordion Container */
+.user-schedule-accordion {
+    border: 1px solid var(--gray-200);
+    border-radius: 12px;
+    background: white;
+    overflow: hidden;
+    box-shadow: var(--shadow-soft);
+}
+
+/* Accordion Header (The User Row) */
+.user-schedule-header {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    padding: 1rem 1.5rem;
+    background: white;
+    border: none;
+    border-bottom: 1px solid var(--gray-100);
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    text-align: left;
+}
+.user-schedule-header:hover { background: var(--gray-50); }
+.user-schedule-header.active { background: var(--emerald-50); border-bottom-color: var(--emerald-200); }
+
+/* Columns in Header */
+.user-info-col { display: flex; align-items: center; gap: 1rem; flex: 1; }
+.user-avatar-small {
+    width: 36px; height: 36px;
+    background: var(--emerald-500); color: white;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: bold; font-size: 0.9rem;
+}
+.user-stats-col { margin-right: 2rem; }
+.user-toggle-col i { transition: transform 0.3s ease; color: var(--gray-400); }
+
+/* Accordion Body (Hidden Area) */
+.user-schedule-body {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s ease-in-out;
+    background: var(--gray-50);
+}
+
+/* Daily Grouping Styling */
+.daily-schedule-container {
+    padding: 1.5rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.day-group {
+    background: white;
+    border: 1px solid var(--gray-200);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.day-header {
+    background: var(--blue-50);
+    color: var(--blue-700);
+    padding: 0.5rem 1rem;
+    font-weight: 700;
+    font-size: 0.9rem;
+    border-bottom: 1px solid var(--blue-100);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Mini Table inside Day Group */
+.day-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+.day-table th {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    color: var(--gray-500);
+    background: white;
+    padding: 0.5rem 1rem;
+    border-bottom: 1px solid var(--gray-100);
+}
+.day-table td {
+    padding: 0.75rem 1rem;
+    font-size: 0.9rem;
+    border-bottom: 1px solid var(--gray-50);
+    color: var(--gray-700);
+}
+.day-table tr:last-child td { border-bottom: none; }
+
+/* Time Pill Style */
+.time-pill {
+    background: var(--gray-100);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    font-family: monospace;
+    color: var(--gray-800);
+    display: inline-block;
+}
+
+/* Clean Buttons */
+.btn-icon {
+    background: none; border: none; cursor: pointer; padding: 4px;
+    border-radius: 4px; transition: background 0.2s;
+    color: var(--gray-400);
+}
+.btn-icon:hover { background: var(--gray-200); color: var(--gray-700); }
+.btn-icon.danger:hover { background: var(--red-50); color: var(--red-600); }
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 3rem;
+    color: var(--gray-400);
+}
+.empty-state i { font-size: 2.5rem; margin-bottom: 1rem; display: block; }
+
+/* Badges */
+.badge { padding: 4px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; }
+.badge-blue { background: var(--blue-50); color: var(--blue-600); }
+.day-badge { background: var(--gray-100); padding: 2px 8px; border-radius: 4px; font-weight: 600; font-size: 0.85rem; }
+
+/* =========================================
+   SCHEDULE MANAGEMENT (Accordion & Tab Fix)
+   ========================================= */
+
+/* Remove rounded corners from tabs */
+.tabs {
+    border-radius: 0;
+}
+.tab-btn:first-child {
+    border-top-left-radius: 0;
+}
+
+/* Make trash icon red */
+.btn-icon.danger {
+    color: var(--gray-400);
+}
+.btn-icon.danger:hover {
+    background: var(--red-50);
+    color: var(--red-600);
+}
+.btn-icon.danger i {
+    color: var(--red-500); /* Makes icon red by default */
+    transition: color 0.2s ease;
+}
+.btn-icon.danger:hover i {
+    color: var(--red-600);
+}
+
+/* Edit icon color */
+.btn-icon:not(.danger) i {
+     color: var(--blue-500);
+}
+.btn-icon:not(.danger):hover i {
+     color: var(--blue-600);
+}
+
+/* =========================================
+   LOGOUT MODAL HEADER (Emerald)
+   ========================================= */
+
+#logoutConfirmModal .modal-header {
+    background: var(--emerald-600);
+    border-bottom: 1px solid var(--emerald-700);
+}
+
+/* Ensure the text and icon color is white for readability */
+#logoutConfirmModal .modal-header h3 {
+    color: white !important; 
+}
+#logoutConfirmModal .modal-header i {
+    color: white !important;
+}
+#logoutConfirmModal .modal-header .modal-close {
+    color: var(--emerald-100);
+}
+#logoutConfirmModal .modal-header .modal-close:hover {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+}
+
+/* =========================================
+   SCHEDULE MODAL SIZE AND SUBJECT WIDTH FIX
+   ========================================= */
+
+/* Increase overall width of the large modal */
+.modal-content.modal-lg {
+    max-width: 1200px !important; /* Increased from 1000px */
+    width: 95% !important; 
+}
+
+/* Increase the width/flex ratio of the subject input */
+.schedule-entry-row .form-group-subject { 
+    /* Changed flex ratio to 4, making it twice as wide as min-width elements */
+    flex: 4 !important; 
+}
