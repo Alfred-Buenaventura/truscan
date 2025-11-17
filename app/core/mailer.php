@@ -14,10 +14,15 @@ class Mailer {
         $mail = new PHPMailer(true);
 
         // --- CONFIGURATION ---
-        // Ideally, put these in a separate config file or environment variables
-        $smtp_username = 'bpcattendancemonitoringsystem@gmail.com'; 
-        $smtp_password = 'bmgu yack ddsb xfzp'; // APP PASSWORD
-        $smtp_from_name = 'BPC Attendance Monitoring System';
+        // UPDATED: Fetch from Environment Variables
+        $smtp_username = getenv('SMTP_USER'); 
+        $smtp_password = getenv('SMTP_PASS');
+        $smtp_from_name = getenv('SMTP_FROM_NAME') ?: 'BPC Attendance Monitoring System';
+
+        if (!$smtp_username || !$smtp_password) {
+            error_log("Mailer Error: SMTP credentials missing in .env file.");
+            return false;
+        }
 
         try {
             $mail->isSMTP();
