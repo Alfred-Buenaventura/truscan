@@ -120,33 +120,7 @@ require_once __DIR__ . '/partials/header.php';
         </div>
     </div>
 
-    <div class="card">
-        <div class="card-header">
-            <h3>Recent Activity</h3>
-            <p>Your recent account activities</p>
-        </div>
-        <div class="card-body">
-            <?php if (empty($activities)): ?>
-                <p style="text-align: center; color: var(--gray-500);">No recent activities</p>
-            <?php else: ?>
-                <div style="display: flex; flex-direction: column; gap: 12px;">
-                    <?php foreach ($activities as $activity): ?>
-                        <div style="display: flex; justify-content: space-between; padding: 16px; background: var(--gray-50); border-radius: 12px;">
-                            <div>
-                                <p style="font-weight: 600; margin-bottom: 4px;"><?= htmlspecialchars($activity['action']) ?></p>
-                                <p style="font-size: 12px; color: var(--gray-600);"><?= htmlspecialchars($activity['description'] ?? '') ?></p>
-                            </div>
-                            <div style="text-align: right;">
-                                <p style="font-size: 14px; color: var(--gray-600);"><?= date('M d, Y', strtotime($activity['created_at'])) ?></p>
-                                <p style="font-size: 12px; color: var(--gray-500);"><?= date('g:i A', strtotime($activity['created_at'])) ?></p>
-                            </div>
-                        </div>
-                    <?php endforeach; ?>
-                </div>
-            <?php endif; ?>
-        </div>
     </div>
-</div>
 
 <script>
 const editProfileBtn = document.getElementById('editProfileBtn');

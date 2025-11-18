@@ -115,7 +115,7 @@ require_once __DIR__ . '/partials/header.php';
         </div>
     </div>
 
-    
+    <?php if (!Helper::isAdmin()): ?>
     <div class="card">
         <div class="card-header">
             <h3>Need Help?</h3>
@@ -129,5 +129,6 @@ require_once __DIR__ . '/partials/header.php';
             </div>
         </div>
     </div>
+    <?php endif; ?>
 </div>
 <?php require_once __DIR__ . '/partials/footer.php'; ?>

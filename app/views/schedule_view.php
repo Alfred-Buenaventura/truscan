@@ -2,9 +2,17 @@
 require_once __DIR__ . '/partials/header.php'; 
 
 // Helper function to render schedule tables
+// UPDATED: Added $isAdmin parameter to control visibility of Actions column
 if (!function_exists('renderScheduleTable')) {
-    function renderScheduleTable($schedules, $nested) {
-        echo '<table class="data-table"><thead><tr><th>Day</th><th>Subject</th><th>Time</th><th>Room</th><th>Actions</th></tr></thead><tbody>';
+    function renderScheduleTable($schedules, $nested, $isAdmin) {
+        echo '<table class="data-table"><thead><tr><th>Day</th><th>Subject / Duty</th><th>Time</th><th>Room / Department</th>';
+        
+        // Only show Actions header if Admin
+        if ($isAdmin) {
+            echo '<th>Actions</th>';
+        }
+        
+        echo '</tr></thead><tbody>';
         
         $dayOrder = ['Monday'=>1,'Tuesday'=>2,'Wednesday'=>3,'Thursday'=>4,'Friday'=>5,'Saturday'=>6];
         usort($schedules, function($a, $b) use ($dayOrder) {
@@ -20,20 +28,25 @@ if (!function_exists('renderScheduleTable')) {
             echo '<td>' . htmlspecialchars($sched['subject']) . '</td>';
             echo '<td>' . date('g:i A', strtotime($sched['start_time'])) . ' - ' . date('g:i A', strtotime($sched['end_time'])) . '</td>';
             echo '<td>' . htmlspecialchars($sched['room']) . '</td>';
-            echo '<td>';
-            // Edit Button
-            echo '<button class="btn-icon" onclick="openEditModal(' . 
-                $sched['id'] . ', ' . 
-                $sched['user_id'] . ', \'' . 
-                $sched['day_of_week'] . '\', \'' . 
-                htmlspecialchars($sched['subject'], ENT_QUOTES) . '\', \'' . 
-                date('H:i', strtotime($sched['start_time'])) . '\', \'' . 
-                date('H:i', strtotime($sched['end_time'])) . '\', \'' . 
-                htmlspecialchars($sched['room'], ENT_QUOTES) . 
-                '\')"><i class="fa-solid fa-pen"></i></button> ';
-            // Delete Button
-            echo '<button class="btn-icon danger" onclick="openDeleteModal(' . $sched['id'] . ', ' . $sched['user_id'] . ')"><i class="fa-solid fa-trash"></i></button>';
-            echo '</td>';
+            
+            // Only show Actions buttons if Admin
+            if ($isAdmin) {
+                echo '<td>';
+                // Edit Button
+                echo '<button class="btn-icon" onclick="openEditModal(' . 
+                    $sched['id'] . ', ' . 
+                    $sched['user_id'] . ', \'' . 
+                    $sched['day_of_week'] . '\', \'' . 
+                    htmlspecialchars($sched['subject'], ENT_QUOTES) . '\', \'' . 
+                    date('H:i', strtotime($sched['start_time'])) . '\', \'' . 
+                    date('H:i', strtotime($sched['end_time'])) . '\', \'' . 
+                    htmlspecialchars($sched['room'], ENT_QUOTES) . 
+                    '\')"><i class="fa-solid fa-pen"></i></button> ';
+                // Delete Button
+                echo '<button class="btn-icon danger" onclick="openDeleteModal(' . $sched['id'] . ', ' . $sched['user_id'] . ')"><i class="fa-solid fa-trash"></i></button>';
+                echo '</td>';
+            }
+            
             echo '</tr>';
         }
         echo '</tbody></table>';
@@ -184,9 +197,9 @@ if (!function_exists('renderScheduleTable')) {
                                                         <table class="day-table">
                                                             <thead>
                                                                 <tr>
-                                                                    <th>Subject</th>
+                                                                    <th>Subject / Duty</th>
                                                                     <th>Time</th>
-                                                                    <th>Room</th>
+                                                                    <th>Room / Department</th>
                                                                     <th style="width: 100px;">Actions</th>
                                                                 </tr>
                                                             </thead>
@@ -242,7 +255,7 @@ if (!function_exists('renderScheduleTable')) {
                             <p>No schedules added yet.</p>
                         </div>
                     <?php else: ?>
-                        <?php renderScheduleTable($approvedSchedules, false); ?>
+                        <?php renderScheduleTable($approvedSchedules, false, $isAdmin); ?>
                     <?php endif; ?>
                 <?php endif; ?>
             </div>
@@ -281,8 +294,13 @@ if (!function_exists('renderScheduleTable')) {
                                         <th style="width: 40px;"><input type="checkbox" onclick="toggleAll(this)"></th>
                                         <th>User</th>
                                     <?php endif; ?>
-                                    <th>Day</th><th>Subject</th><th>Time</th><th>Room</th>
-                                    <th style="text-align: right;">Actions</th>
+                                    <th>Day</th>
+                                    <th>Subject / Duty</th>
+                                    <th>Time</th>
+                                    <th>Room / Department</th>
+                                    <?php if ($isAdmin): ?>
+                                        <th style="text-align: right;">Actions</th>
+                                    <?php endif; ?>
                                 </tr>
                             </thead>
                             <tbody>
@@ -296,14 +314,13 @@ if (!function_exists('renderScheduleTable')) {
                                     <td><?= htmlspecialchars($sched['subject']) ?></td>
                                     <td><?= date('g:i A', strtotime($sched['start_time'])) ?> - <?= date('g:i A', strtotime($sched['end_time'])) ?></td>
                                     <td><?= htmlspecialchars($sched['room']) ?></td>
+                                    
+                                    <?php if ($isAdmin): ?>
                                     <td style="text-align: right;">
-                                        <?php if ($isAdmin): ?>
-                                            <button type="button" class="btn btn-sm btn-success" onclick="submitSingleAction('approve', <?= $sched['id'] ?>)"><i class="fa-solid fa-check"></i></button>
-                                            <button type="button" class="btn btn-sm btn-danger" onclick="submitSingleAction('decline', <?= $sched['id'] ?>)"><i class="fa-solid fa-times"></i></button>
-                                        <?php else: ?>
-                                            <button type="button" class="btn btn-sm btn-danger" onclick="openDeleteModal(<?= $sched['id'] ?>, <?= $sched['user_id'] ?>)"><i class="fa-solid fa-trash"></i></button>
-                                        <?php endif; ?>
+                                        <button type="button" class="btn btn-sm btn-success" onclick="submitSingleAction('approve', <?= $sched['id'] ?>)"><i class="fa-solid fa-check"></i></button>
+                                        <button type="button" class="btn btn-sm btn-danger" onclick="submitSingleAction('decline', <?= $sched['id'] ?>)"><i class="fa-solid fa-times"></i></button>
                                     </td>
+                                    <?php endif; ?>
                                 </tr>
                                 <?php endforeach; ?>
                             </tbody>
@@ -324,37 +341,33 @@ if (!function_exists('renderScheduleTable')) {
 
 <div id="bulkApproveModal" class="modal">
     <div class="modal-content modal-small">
-        <div class="modal-header" style="background-color: var(--emerald-50);">
-            <h3 style="color: var(--emerald-700);"><i class="fa-solid fa-circle-check"></i> Confirm Approval</h3>
+        <div class="modal-header">
+            <h3><i class="fa-solid fa-circle-check"></i> Confirm Approval</h3>
             <button type="button" class="modal-close" onclick="closeModal('bulkApproveModal')">&times;</button>
         </div>
         <div class="modal-body">
-            <p style="font-size: 1.1rem; color: var(--gray-800); margin-bottom: 0.5rem;">
-                Are you sure you want to approve the selected schedules?
-            </p>
-            <p style="font-size: 0.9rem; color: var(--gray-600);">
-                <span id="bulkCountDisplay">0</span> schedules will be added to the official calendar.
-            </p>
+            <p style="font-size: 1.1rem; color: var(--gray-800); margin-bottom: 0.5rem;">Are you sure you want to approve the selected schedules?</p>
+            <p style="font-size: 0.9rem; color: var(--gray-600);"><span id="bulkCountDisplay">0</span> schedules will be added to the official calendar.</p>
         </div>
         <div class="modal-footer">
             <button type="button" class="btn btn-secondary" onclick="closeModal('bulkApproveModal')">Cancel</button>
-            <button type="button" class="btn btn-success" onclick="confirmBulkApprove()">
-                <i class="fa-solid fa-check"></i> Yes, Approve
-            </button>
+            <button type="button" class="btn btn-success" onclick="confirmBulkApprove()"><i class="fa-solid fa-check"></i> Yes, Approve</button>
         </div>
     </div>
 </div>
 
-<div id="addScheduleModal" class="modal">
-    <div class="modal-content modal-lg">
+<div id="deleteScheduleModal" class="modal">
+    <div class="modal-content modal-small">
         <form method="POST">
-            <div class="modal-header"><h3><i class="fa-solid fa-plus"></i> Add Schedule</h3><button type="button" class="modal-close" onclick="closeModal('addScheduleModal')">&times;</button></div>
-            <div class="modal-body">
-                <div id="schedule-entry-list"></div> <button type="button" class="btn btn-secondary" onclick="addScheduleRow()">+ Add Row</button>
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-trash"></i> Delete?</h3>
+                <button type="button" class="modal-close" onclick="closeModal('deleteScheduleModal')">&times;</button>
             </div>
-            <div class="modal-footer">
-                <button type="submit" name="add_schedule" class="btn btn-primary">Submit</button>
+            <div class="modal-body"><p>Are you sure you want to delete this schedule?</p>
+                <input type="hidden" name="schedule_id_delete" id="deleteScheduleId">
+                <input type="hidden" name="user_id_delete" id="deleteUserId">
             </div>
+            <div class="modal-footer"><button type="submit" name="delete_schedule" class="btn btn-danger">Delete</button></div>
         </form>
     </div>
 </div>
@@ -374,7 +387,7 @@ if (!function_exists('renderScheduleTable')) {
                     </select>
                 </div>
                 <div class="form-group" style="margin-bottom: 1rem;">
-                    <label>Subject</label>
+                    <label>Subject / Duty</label>
                     <input type="text" name="subject_edit" id="editSubject" class="form-control" required>
                 </div>
                 <div class="form-group" style="margin-bottom: 1rem;">
@@ -386,7 +399,7 @@ if (!function_exists('renderScheduleTable')) {
                     <input type="time" name="end_time_edit" id="editEndTime" class="form-control" required>
                 </div>
                 <div class="form-group">
-                    <label>Room</label>
+                    <label>Room / Department</label>
                     <input type="text" name="room_edit" id="editRoom" class="form-control">
                 </div>
             </div>
@@ -490,6 +503,7 @@ function addScheduleRow() {
     const list = document.getElementById('schedule-entry-list');
     const div = document.createElement('div');
     div.className = 'schedule-entry-row';
+    // UPDATED LABELS AND PLACEHOLDERS BELOW
     div.innerHTML = `
         <div class="form-group">
             <label>Day</label>
@@ -498,8 +512,8 @@ function addScheduleRow() {
             </select>
         </div>
         <div class="form-group form-group-subject">
-            <label>Subject</label>
-            <input type="text" name="subject[]" placeholder="Enter subject name" class="form-control" required>
+            <label>Subject / Duty</label>
+            <input type="text" name="subject[]" placeholder="e.g., Math 101 or Office Duty" class="form-control" required>
         </div>
         <div class="form-group form-group-time">
             <label>Start</label>
@@ -510,8 +524,8 @@ function addScheduleRow() {
             <input type="time" name="end_time[]" class="form-control" required>
         </div>
         <div class="form-group form-group-room">
-            <label>Room</label>
-            <input type="text" name="room[]" placeholder="Room" class="form-control">
+            <label>Room / Department</label>
+            <input type="text" name="room[]" placeholder="Room or Dept" class="form-control">
         </div>
         <button type="button" class="btn btn-danger" onclick="this.parentElement.remove()" title="Remove">
             <i class="fa-solid fa-times"></i>

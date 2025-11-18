@@ -2,8 +2,14 @@
 require_once __DIR__ . '/partials/header.php'; 
 ?>
 <?php if ($isAdmin): ?>
-    <!-- Admin Dashboard (unchanged) -->
     <div class="main-body">
+        
+        <div style="margin-bottom: 1.5rem; display: flex; justify-content: flex-end;">
+            <a href="display.php" target="_blank" class="btn btn-primary" style="background-color: var(--blue-600); border-color: var(--blue-600);">
+                <i class="fa-solid fa-desktop"></i> Launch Attendance Display
+            </a>
+        </div>
+
         <div class="stats-grid">
             <div class="stat-card">
                 <div class="stat-icon emerald">
@@ -73,39 +79,11 @@ require_once __DIR__ . '/partials/header.php';
                  </div>
             </div>
         </div>
-
-        <div class="card">
-            <div class="card-header">
-                <h3>Admin Shortcuts</h3>
-            </div>
-            <div class="card-body">
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem;">
-                    <a href="create_account.php" class="btn btn-primary" style="padding: 1rem; text-align: left; justify-content: flex-start; font-size: 1rem;">
-                        <i class="fa-solid fa-user-plus" style="width: 20px; text-align: center; margin-right: 0.75rem; font-size: 1.2rem;"></i>
-                        <span>Create User Accounts</span>
-                    </a>
-                    <a href="attendance_reports.php" class="btn btn-primary" style="padding: 1rem; text-align: left; justify-content: flex-start; font-size: 1rem;">
-                        <i class="fa-solid fa-file-invoice" style="width: 20px; text-align: center; margin-right: 0.75rem; font-size: 1.2rem;"></i>
-                        <span>View Attendance Reports</span>
-                    </a>
-                    <a href="schedule_management.php" class="btn btn-primary" style="padding: 1rem; text-align: left; justify-content: flex-start; font-size: 1rem;">
-                        <i class="fa-solid fa-calendar-days" style="width: 20px; text-align: center; margin-right: 0.75rem; font-size: 1.2rem;"></i>
-                        <span>Manage Schedules</span>
-                    </a>
-                    <a href="display.php" target="_blank" class="btn btn-primary" style="padding: 1rem; text-align: left; justify-content: flex-start; font-size: 1rem; background-color: var(--blue-600); border-color: var(--blue-600);">
-                        <i class="fa-solid fa-desktop" style="width: 20px; text-align: center; margin-right: 0.75rem; font-size: 1.2rem;"></i>
-                        <span>Launch Attendance Display</span>
-                    </a>
-                </div>
-            </div>
-        </div>
     </div>
 
 <?php else: ?>
-    <!-- USER DASHBOARD (Updated with Emerald Green Cards) -->
     <div class="main-body user-dashboard-body">
         
-        <!-- Link to History Page -->
         <div style="display: flex; justify-content: flex-end; margin-bottom: 1rem;">
             <a href="attendance_history.php" class="btn btn-secondary btn-sm">
                 <i class="fa-solid fa-clock-rotate-left"></i> View My Attendance History
@@ -113,7 +91,6 @@ require_once __DIR__ . '/partials/header.php';
         </div>
 
         <div class="ud-grid">
-            <!-- Registration Status Card -->
             <div class="ud-card">
                 <h3 class="ud-card-title emerald-header">
                     <i class="fa-solid fa-clipboard-check"></i> Registration Status
@@ -134,7 +111,6 @@ require_once __DIR__ . '/partials/header.php';
                 </div>
             </div>
 
-            <!-- Today's Attendance Card -->
             <div class="ud-card">
                 <h3 class="ud-card-title emerald-header">
                     <i class="fa-solid fa-calendar-check"></i> Today's Attendance
@@ -166,7 +142,6 @@ require_once __DIR__ . '/partials/header.php';
             </div>
         </div>
 
-        <!-- My Recent Activity Card -->
         <div class="ud-card ud-activity-card">
             <h3 class="ud-card-title emerald-header">
                 <i class="fa-solid fa-history"></i> My Recent Activity
@@ -195,7 +170,6 @@ require_once __DIR__ . '/partials/header.php';
              </div>
         </div>
 
-        <!-- Note Container at Bottom -->
         <div class="page-hint-card">
             <div class="page-hint-icon">
                 <i class="fa-solid fa-lightbulb"></i>

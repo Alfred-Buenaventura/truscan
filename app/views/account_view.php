@@ -3,7 +3,6 @@
 require_once __DIR__ . '/partials/header.php'; 
 ?>
 
-<main class="main-content" style="position: relative; z-index: 1; padding: 20px;">
     <div class="main-body">
 
         <div id="toastContainer" class="toast-container"></div>
