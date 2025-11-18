@@ -84,8 +84,8 @@
     --shadow-soft: 0 4px 12px rgba(0, 0, 0, 0.08);
     --shadow-strong: 0 8px 24px rgba(0, 0, 0, 0.1);
 
-    --sidebar-width: 400px;
-    --sidebar-collapsed-width: 80px;
+    --sidebar-width: 280;
+    --sidebar-collapsed-width: 65px;
 }
 /* Root Variables End */
 
@@ -205,12 +205,12 @@ body {
 .dashboard-container {
     display: flex;
     min-height: 100vh;
-    height: 100vh; /* Add this line */
+    height: 100vh;
     background: var(--gray-50);
     position: relative;
     transition: padding-left var(--transition-medium);
-    padding-left: var(--sidebar-width);
-    overflow: hidden; /* Add this line to prevent double scrollbars */
+    padding-left: var(--sidebar-width); /* 280px */
+    overflow: hidden;
 }
 /* Dashboard Layout End */
 
@@ -234,7 +234,7 @@ body {
 
 /* Sidebar Header Start */
 .sidebar-header {
-    padding: 20px 24px;
+    padding: 16px 20px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     flex-shrink: 0;
     transition: padding var(--transition-medium);
@@ -253,8 +253,8 @@ body {
 }
 
 .sidebar-logo-icon {
-    width: 47px;
-    height: 47px;
+    width: 40px;
+    height: 40px;
     background: var(--emerald-600);
     border-radius: 10px;
     display: flex;
@@ -266,7 +266,7 @@ body {
 
 .sidebar-logo-icon i,
 .sidebar-logo-icon svg {
-    font-size: 26px;
+    font-size: 22px;
     color: white;
     line-height: 1;
     fill: white;
@@ -277,14 +277,14 @@ body {
 }
 
 .sidebar-title h1 {
-    font-size: 17px;
+    font-size: 15px;
     color: #FFFFFF;
     font-weight: 700;
     white-space: nowrap;
 }
 
 .sidebar-title p {
-    font-size: 11px;
+    font-size: 10px;
     color: #FFFFFF;
     white-space: nowrap;
 }
@@ -293,7 +293,7 @@ body {
 /* Sidebar Navigation Start */
 .sidebar-nav {
     flex: 1;
-    padding: 16px;
+    padding: 12px 14px;
     overflow-y: auto;
     overflow-x: hidden;
 }
@@ -301,8 +301,8 @@ body {
 .nav-item {
     display: flex;
     align-items: center;
-    gap: 16px;
-    padding: 14px 20px;
+    gap: 12px;
+    padding: 12px 16px;
     border-radius: 10px;
     color: white;
     text-decoration: none;
@@ -369,21 +369,21 @@ body {
 }
 
 .user-avatar {
-    width: 40px;
-    height: 40px;
+    width: 36px;
+    height: 36px;
     background: var(--emerald-500);
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     font-weight: 700;
-    font-size: 14px;
+    font-size: 13px;
     flex-shrink: 0;
     transition: margin var(--transition-medium);
 }
 
 .user-details {
-     margin-left: 12px;
+     margin-left: 10px;
      flex-grow: 1;
      overflow: hidden;
      white-space: nowrap;
@@ -477,11 +477,15 @@ body {
 
 /* Collapsed Sidebar State Start */
 .dashboard-container.sidebar-collapsed {
-    padding-left: var(--sidebar-collapsed-width);
+    padding-left: var(--sidebar-collapsed-width); /* 70px */
 }
 
 .dashboard-container.sidebar-collapsed .sidebar {
     width: var(--sidebar-collapsed-width);
+}
+
+.dashboard-container.sidebar-collapsed .main-content {
+    margin-left: 0;
 }
 
 .dashboard-container.sidebar-collapsed .sidebar-header {
@@ -557,10 +561,11 @@ body {
     display: flex;
     flex-direction: column;
     width: 100%;
-    transition: width var(--transition-medium);
+    transition: margin-left var(--transition-medium), width var(--transition-medium);
     overflow-x: hidden;
-    overflow-y: auto; /* Add this line */
-    height: 100vh; /* Add this line to ensure proper scrolling */
+    overflow-y: auto;
+    height: 100vh;
+    margin-left: 0; /* Start with no margin */
 }
 /* Main Content Area End */
 
@@ -1237,7 +1242,7 @@ tbody tr:hover {
     overflow: auto;
     background-color: rgba(0,0,0,0.5);
     backdrop-filter: blur(4px);
-    left: var(--sidebar-width);
+    left: var(--sidebar-width); /* Start at 280px */
     width: calc(100% - var(--sidebar-width));
     align-items: center;
     justify-content: center;
@@ -1246,7 +1251,7 @@ tbody tr:hover {
 }
 
 .dashboard-container.sidebar-collapsed .modal {
-    left: var(--sidebar-collapsed-width);
+    left: var(--sidebar-collapsed-width); /* Adjust to 70px */
     width: calc(100% - var(--sidebar-collapsed-width));
 }
 
@@ -4945,3 +4950,156 @@ body.dtr-body .print-controls {
     background: var(--emerald-100);
     color: var(--emerald-600);
 }
+
+/* =========================================
+   USER DASHBOARD NOTE CARD
+   ========================================= */
+
+.page-hint-card {
+    background: var(--emerald-50);
+    border: 1px solid var(--emerald-200);
+    border-radius: 12px;
+    padding: 1.5rem;
+    display: flex;
+    gap: 1rem;
+    margin-top: 1.5rem;
+    box-shadow: var(--shadow-soft);
+}
+
+.page-hint-icon {
+    width: 48px;
+    height: 48px;
+    background: var(--emerald-600);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    color: white;
+    font-size: 1.5rem;
+}
+
+.page-hint-content h4 {
+    color: var(--emerald-800);
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0 0 0.5rem 0;
+}
+
+.page-hint-content p {
+    color: var(--gray-700);
+    line-height: 1.6;
+    margin: 0;
+    font-size: 0.95rem;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+    .page-hint-card {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .page-hint-icon {
+        margin: 0 auto;
+    }
+}
+
+/* Pending-specific accordion styling */
+.pending-accordion {
+    border: 1px solid var(--yellow-200);
+}
+
+.pending-group {
+    border-bottom: 1px solid var(--yellow-100);
+}
+
+.pending-group:last-child {
+    border-bottom: none;
+}
+
+.pending-header {
+    background: var(--yellow-50);
+    border-bottom: 1px solid var(--yellow-100);
+}
+
+.pending-header:hover {
+    background: var(--yellow-100);
+}
+
+.pending-header.active {
+    background: var(--yellow-100);
+    border-bottom-color: var(--yellow-200);
+}
+
+.pending-avatar {
+    background: var(--yellow-500);
+}
+
+/* Pending schedule list container */
+.pending-schedule-list {
+    padding: 1.5rem;
+    background: white;
+}
+
+.pending-schedule-list table {
+    margin-bottom: 1rem;
+}
+
+/* Bulk actions bar */
+.bulk-actions-bar {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    padding: 1rem;
+    background: var(--gray-50);
+    border-top: 1px solid var(--gray-200);
+    border-radius: 0 0 8px 8px;
+}
+
+.bulk-actions-bar .btn {
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+}
+
+/* Badge styles */
+.badge-yellow {
+    background: var(--yellow-100);
+    color: var(--yellow-700);
+    font-weight: 600;
+}
+
+/* Notification count badge on tab */
+.notification-count-badge {
+    background: var(--red-600);
+    color: white;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    font-weight: 700;
+    margin-left: 0.5rem;
+}
+
+/* Mobile responsiveness for pending accordion */
+@media (max-width: 768px) {
+    .pending-schedule-list {
+        padding: 1rem;
+    }
+    
+    .bulk-actions-bar {
+        flex-direction: column;
+    }
+    
+    .bulk-actions-bar .btn {
+        width: 100%;
+    }
+    
+    .pending-schedule-list table {
+        min-width: 700px;
+    }
+}
+
