@@ -51,5 +51,26 @@ class Controller {
             die('Access Denied');
         }
     }
+
+    public function markAllNotificationsRead() {
+    header('Content-Type: application/json');
+    
+    if (session_status() === PHP_SESSION_NONE) session_start();
+    
+    if (!isset($_SESSION['user_id'])) { 
+        echo json_encode(['success'=>false, 'message' => 'Unauthorized']); 
+        exit; 
+    }
+    
+    $db = new Database();
+    $db->query(
+        "UPDATE notifications SET is_read = 1 WHERE user_id = ? AND is_read = 0", 
+        [$_SESSION['user_id']], 
+        "i"
+    );
+    
+    echo json_encode(['success' => true, 'message' => 'All notifications marked as read']);
+    exit;
+    }
 }
 ?>
