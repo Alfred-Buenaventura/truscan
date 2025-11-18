@@ -8,7 +8,13 @@ class Schedule {
         $this->db = new Database();
     }
     
-    // --- NEW: UPDATE METHOD ---
+    // --- NEW: Helper to get single schedule details (REQUIRED for Emails) ---
+    public function findById($id) {
+        $sql = "SELECT * FROM class_schedules WHERE id = ?";
+        $stmt = $this->db->query($sql, [$id], "i");
+        return $stmt->get_result()->fetch_assoc();
+    }
+
     public function update($id, $day, $subject, $start, $end, $room) {
         $sql = "UPDATE class_schedules 
                 SET day_of_week = ?, subject = ?, start_time = ?, end_time = ?, room = ?
@@ -16,7 +22,6 @@ class Schedule {
         $stmt = $this->db->query($sql, [$day, $subject, $start, $end, $room, $id], "sssssi");
         return $stmt->affected_rows > 0;
     }
-    // --- END NEW METHOD ---
 
     public function create($userId, $schedules, $isAdmin) {
         $status = $isAdmin ? 'approved' : 'pending';
@@ -93,15 +98,19 @@ class Schedule {
     }
 
     public function getAdminStats() {
-        $sql_users = "SELECT COUNT(DISTINCT user_id) as total FROM class_schedules WHERE status='approved'";
+        // 1. Total Approved Schedules
         $sql_schedules = "SELECT COUNT(*) as total FROM class_schedules WHERE status='approved'";
-        
-        $users = $this->db->query($sql_users)->get_result()->fetch_assoc()['total'] ?? 0;
         $schedules = $this->db->query($sql_schedules)->get_result()->fetch_assoc()['total'] ?? 0;
 
+        // 2. Total Unique Subjects
+        $sql_subjects = "SELECT COUNT(DISTINCT subject) as total FROM class_schedules WHERE status='approved'";
+        $subjects = $this->db->query($sql_subjects)->get_result()->fetch_assoc()['total'] ?? 0;
+        
+        // 3. Staff Count (Optional, unused if controller counts users array)
+        
         return [
-            'total_users_with_schedules' => $users,
-            'total_schedules' => $schedules
+            'total_schedules' => $schedules,
+            'total_subjects' => $subjects
         ];
     }
     

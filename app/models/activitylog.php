@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/../core/database.php'; // Lowercase
+require_once __DIR__ . '/../core/database.php';
 
 class ActivityLog {
     private $db;
@@ -8,14 +8,20 @@ class ActivityLog {
         $this->db = new Database();
     }
 
+    // This is the method causing the error - ensuring it exists
     public function log($userId, $action, $details = '') {
-        $ip = $_SERVER['REMOTE_ADDR'];
+        // Handle cases where IP might not be set (e.g. CLI)
+        $ip = $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1'; 
+        
         $sql = "INSERT INTO activity_logs (user_id, action, description, ip_address) VALUES (?, ?, ?, ?)";
         $this->db->query($sql, [$userId, $action, $details, $ip], "isss");
     }
 
     public function getRecentLogs($limit = 5, $userId = null) {
-        $sql = "SELECT al.*, u.first_name, u.last_name FROM activity_logs al LEFT JOIN users u ON al.user_id = u.id";
+        $sql = "SELECT al.*, u.first_name, u.last_name 
+                FROM activity_logs al 
+                LEFT JOIN users u ON al.user_id = u.id";
+        
         if ($userId) {
             $sql .= " WHERE al.user_id = ? ORDER BY al.created_at DESC LIMIT ?";
             $stmt = $this->db->query($sql, [$userId, $limit], "ii");
@@ -32,7 +38,10 @@ class ActivityLog {
     }
 
     public function getPaginated($limit, $offset) {
-        $sql = "SELECT al.*, u.first_name, u.last_name FROM activity_logs al LEFT JOIN users u ON al.user_id = u.id ORDER BY al.created_at DESC LIMIT ? OFFSET ?";
+        $sql = "SELECT al.*, u.first_name, u.last_name 
+                FROM activity_logs al 
+                LEFT JOIN users u ON al.user_id = u.id 
+                ORDER BY al.created_at DESC LIMIT ? OFFSET ?";
         return $this->db->query($sql, [$limit, $offset], "ii")->get_result()->fetch_all(MYSQLI_ASSOC);
     }
 }
