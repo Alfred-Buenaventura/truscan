@@ -7,16 +7,16 @@ if (session_status() === PHP_SESSION_NONE) {
 // 2. Set Timezone
 date_default_timezone_set('Asia/Manila');
 
-// 3. Load Core Classes (Use LOWERCASE filenames)
+// 3. Load Core Classes
 require_once __DIR__ . '/core/database.php';
 require_once __DIR__ . '/core/controller.php';
-require_once __DIR__ . '/core/helper.php';  // <--- This loads the Helper class
+require_once __DIR__ . '/core/helper.php';
 require_once __DIR__ . '/core/mailer.php';
 
-// 4. Load .env (Ensure the path is correct)
-// This looks for .env one folder UP from app/init.php (i.e., in the root)
+// 4. Load .env
 Helper::loadEnv(__DIR__ . '/../.env');
-// Load Models (LOWERCASE FILENAMES)
+
+// Load Models
 require_once __DIR__ . '/models/user.php';
 require_once __DIR__ . '/models/activitylog.php';
 require_once __DIR__ . '/models/notification.php';
@@ -37,8 +37,10 @@ if (!function_exists('jsonResponse')) {
 if (!function_exists('sendEmail')) {
     function sendEmail($to, $sub, $msg) { return Mailer::send($to, $sub, $msg); }
 }
+
+// FIX: Use Singleton Instance
 function db() {
-    $database = new Database();
+    $database = Database::getInstance(); 
     return $database->conn;
 }
 ?>
