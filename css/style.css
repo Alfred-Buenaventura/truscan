@@ -4021,97 +4021,64 @@ body.dtr-body .print-controls {
 /* --- 3. Styles for PRINTING (Final Fix v4) --- */
 @media print {
     @page {
-        size: A4 portrait;
-        margin: 0.5in;
+        size: A4 portrait; /* Standard paper size */
+        margin: 0.25in;    /* Safe printer margins */
     }
     
     body.dtr-body {
-        background: #fff !important;
-        overflow: visible !important;
-        font-size: 7pt !important; /* Base font size for print */
-        -webkit-print-color-adjust: exact !important; 
-        print-color-adjust: exact !important;
-    }
-    
-    .print-controls, .modal-dtr-preview {
-        display: none !important;
-    }
-    
-    /* This wrapper holds the two DTRs */
-    .dtr-container-wrapper {
-        padding: 0 !important;
-        display: flex !important;
-        flex-direction: row !important;
-        justify-content: space-around !important;
-        align-items: flex-start !important;
-        width: 100% !important;
-    }
-    
-    /* Override DTR to your exact print size */
-    .dtr-container {
-        width: 3.5in !important; /* CHANGED to 3.5in as requested */
-        height: 9.5in !important;
-        padding: 0.2in !important; /* Even smaller padding */
-        margin: 0 !important;
-        border: 1px solid #000 !important;
-        box-shadow: none !important;
+        background: none;
+        padding: 0;
+        margin: 0;
+        width: 80%;
+        height: 80%;
     }
 
-    /* --- Force all content inside to shrink (MORE AGGRESSIVE) --- */
+    .dtr-container-wrapper {
+        display: flex !important;
+        flex-direction: row !important;
+        justify-content: center !important;
+        align-items: flex-start !important;
+        width: 100% !important;
+        gap: 0.2in !important; /* Small gap between the two forms */
+        padding: 0 !important;
+    }
+
     .dtr-container {
-        font-size: 7pt !important;
+        /* STRICT 3.5 x 8.5 INCH DIMENSIONS */
+        width: 3.5in !important;
+        min-width: 3.5in !important;
+        max-width: 3.5in !important;
+        
+        height: 8.5in !important;
+        min-height: 8.5in !important;
+        max-height: 8.5in !important;
+        
+        padding: 0.15in !important; /* Minimal padding inside the border */
+        border: 2px solid #000 !important; /* Thicker border for cut lines */
+        box-shadow: none !important;
+        margin: 0 !important;
+        box-sizing: border-box !important;
+        overflow: hidden !important; 
     }
-    .dtr-container .dtr-header h2 { 
-        font-size: 9pt !important; 
-        margin: 0.1rem 0 !important; 
-    }
-    .dtr-container .dtr-header h3 { 
-        font-size: 8pt !important; 
-    }
-    .dtr-container .info-table { 
-        margin-top: 0.15in !important; 
-        font-size: 7pt !important; 
-    }
-    .dtr-container .info-table td {
-        padding: 1px 0 !important; /* Tighter row spacing */
-    }
-    .dtr-container .attendance-table { 
-        margin-top: 0.15in !important; 
-        font-size: 7pt !important; 
-    }
-    .dtr-container .attendance-table th {
-        font-size: 6pt !important;
-    }
-    /* This makes the table rows shrink */
-    .dtr-container .attendance-table th,
-    .dtr-container .attendance-table td {
-        padding: 1px !important; /* Tighter padding */
-        height: auto !important; /* Let content define height */
-    }
-    .dtr-container .attendance-table .time-val {
-        font-size: 7pt !important;
-    }
+
+    /* Show 2nd copy */
+    .dtr-copy-1 { display: block !important; }
     
-    /* This makes the footer fill remaining space */
-    .dtr-container .dtr-footer-content { 
-        margin-top: 0.2in !important; 
-        line-height: 1.1 !important; 
-        font-size: 6pt !important;
-        flex-grow: 1 !important; /* Pushes signatures to the bottom */
-    }
-    .dtr-container .signature-block { 
-        margin-top: 0.1in !important; 
-        padding-top: 0.1in !important; 
-        flex-shrink: 0; /* Don't let the signature block shrink */
-    }
-    .dtr-container .signature-line { 
-        width: 100% !important; 
-        padding-top: 0.2in !important; 
-    }
-    .dtr-container .signature-label { 
-        font-size: 6pt !important; 
+    /* Hide Buttons */
+    .print-controls { display: none !important; }
+    
+    /* Ensure red prints */
+    .holiday-text {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
     }
 }
+    /* Show BOTH copies */
+    .dtr-copy-1 { display: block !important; }
+
+    /* Hide Controls */
+    .print-controls { display: none !important; }
+
 /* --- END: DTR Sizing (Final Fix v4) --- */
 
 
@@ -4250,6 +4217,8 @@ body.dtr-body .print-controls {
 .btn-secondary:hover {
     background: #d1d5db;
 }
+
+
 
 /* =========================================
    MOBILE RESPONSIVENESS FIXES
@@ -5348,12 +5317,11 @@ html {
     color: #6b7280;
 }
 
-/* 5. Pop-up Scan Card */
 .scan-card {
     position: absolute;
     top: 50%;
     left: 50%;
-    transform: translate(-50%, -40%) scale(0.95); /* Start slightly off */
+    transform: translate(-50%, -40%) scale(0.95);
     background: white;
     border-radius: 24px;
     box-shadow: 0 20px 50px rgba(0,0,0,0.3); 
@@ -5367,14 +5335,14 @@ html {
     flex-direction: column;
     align-items: center;
     padding: 3rem;
-    border: 6px solid #10b981; /* Emerald 500 */
+    border: 6px solid #10b981;
     z-index: 20;
 }
 
 .scan-card.show {
     opacity: 1;
     visibility: visible;
-    transform: translate(-50%, -50%) scale(1); /* Center and full scale */
+    transform: translate(-50%, -50%) scale(1); 
 }
 
 .scan-card .icon-badge {
@@ -5397,7 +5365,6 @@ html {
 .scan-card .user-name {
     font-size: 4rem;
     font-weight: 800;
-    /* ADDED !important to ensure visibility against global overrides */
     color: #1f2937 !important; 
     line-height: 1.1;
     margin-bottom: 0.5rem;
@@ -5447,4 +5414,56 @@ html {
     0% { transform: scale(1); opacity: 0.9; }
     50% { transform: scale(1.05); opacity: 1; }
     100% { transform: scale(1); opacity: 0.9; }
+}
+
+.attendance-table-new .user-name {
+    color: #111827 !important;
+    font-weight: 700;
+}
+
+.time-cell.time-in {
+    background-color: #d1fae5 !important; 
+    color: #064e3b !important;            
+    border: 1px solid #34d399;           
+    font-weight: 600;
+}
+
+.time-cell.time-out {
+    background-color: #fee2e2 !important; 
+    color: #7f1d1d !important;            
+    border: 1px solid #f87171;            
+    font-weight: 600;
+}
+
+.attendance-table-new .user-id {
+    color: #4b5563 !important; 
+}
+
+/* =========================================
+   STATUS BADGE COLORS (Late / Present)
+   ========================================= */
+
+.status-label {
+    display: inline-block;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-left: 6px;
+}
+
+/* LATE: Distinct Red to alert the user */
+.status-late {
+    background-color: #fee2e2 !important; /* Red 100 */
+    color: #991b1b !important;            /* Red 800 */
+    border: 1px solid #f87171 !important; /* Red 400 */
+}
+
+/* PRESENT: Standard Green (matching the Time In box but darker text) */
+.status-present {
+    background-color: #d1fae5 !important; /* Emerald 100 */
+    color: #065f46 !important;            /* Emerald 800 */
+    border: 1px solid #34d399 !important; /* Emerald 400 */
 }
