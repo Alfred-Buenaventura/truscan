@@ -59,19 +59,24 @@ class Schedule {
         return $this->db->query($sql, [$userId, $status], "is")->get_result()->fetch_all(MYSQLI_ASSOC);
     }
 
+    // UPDATED: Only fetch Pending schedules for ACTIVE users
     public function getAllByStatus($status) {
         $sql = "SELECT cs.*, u.first_name, u.last_name, u.faculty_id 
                 FROM class_schedules cs
                 JOIN users u ON cs.user_id = u.id
-                WHERE cs.status = ? ORDER BY u.last_name, cs.day_of_week, cs.start_time";
+                WHERE cs.status = ? 
+                AND u.status = 'active' 
+                ORDER BY u.last_name, cs.day_of_week, cs.start_time";
         return $this->db->query($sql, [$status], "s")->get_result()->fetch_all(MYSQLI_ASSOC);
     }
     
+    // UPDATED: Only fetch Approved schedules for ACTIVE users
     public function getAllApprovedGroupedByUser() {
         $sql = "SELECT cs.*, u.first_name, u.last_name, u.faculty_id 
                 FROM class_schedules cs
                 JOIN users u ON cs.user_id = u.id
                 WHERE cs.status = 'approved' 
+                AND u.status = 'active'
                 ORDER BY u.last_name, cs.day_of_week, cs.start_time";
         
         $result = $this->db->query($sql)->get_result()->fetch_all(MYSQLI_ASSOC);
@@ -97,16 +102,21 @@ class Schedule {
         return $grouped;
     }
 
+    // UPDATED: Stats should only count ACTIVE users' schedules
     public function getAdminStats() {
-        // 1. Total Approved Schedules
-        $sql_schedules = "SELECT COUNT(*) as total FROM class_schedules WHERE status='approved'";
+        // 1. Total Approved Schedules (Filtered by active users)
+        $sql_schedules = "SELECT COUNT(cs.id) as total 
+                          FROM class_schedules cs 
+                          JOIN users u ON cs.user_id = u.id 
+                          WHERE cs.status='approved' AND u.status='active'";
         $schedules = $this->db->query($sql_schedules)->get_result()->fetch_assoc()['total'] ?? 0;
 
-        // 2. Total Unique Subjects
-        $sql_subjects = "SELECT COUNT(DISTINCT subject) as total FROM class_schedules WHERE status='approved'";
+        // 2. Total Unique Subjects (Filtered by active users)
+        $sql_subjects = "SELECT COUNT(DISTINCT cs.subject) as total 
+                         FROM class_schedules cs 
+                         JOIN users u ON cs.user_id = u.id 
+                         WHERE cs.status='approved' AND u.status='active'";
         $subjects = $this->db->query($sql_subjects)->get_result()->fetch_assoc()['total'] ?? 0;
-        
-        // 3. Staff Count (Optional, unused if controller counts users array)
         
         return [
             'total_schedules' => $schedules,
