@@ -22,7 +22,7 @@ class ApiController extends Controller {
         }
 
         $userId = (int)$data->user_id;
-        $db = new Database();
+        $db = Database::getInstance();
 
         // 1. Fetch User
         $userQuery = $db->query("SELECT * FROM users WHERE id = ?", [$userId], "i");
@@ -45,35 +45,46 @@ class ApiController extends Controller {
             // TIME OUT
             $db->query("UPDATE attendance_records SET time_out = ? WHERE id = ?", [$now, $record['id']], "si");
             $status = "Time Out";
-        } else {
-            // TIME IN
-            $timeInStatus = "On-time"; // Default status
-            $dayOfWeek = date('l'); 
+        // ... (inside the else block where !$record, meaning this is a new Time In) ...
 
-            // Check Schedule for Lateness
-            $scheduleStmt = $db->query(
-                "SELECT MIN(start_time) AS first_class_start 
-                 FROM class_schedules 
-                 WHERE user_id = ? AND day_of_week = ? AND status = 'approved'",
-                [$userId, $dayOfWeek], "is"
-            );
-            $schedule = $scheduleStmt->get_result()->fetch_assoc();
+   } else {
+    // TIME IN
+    $timeInStatus = "On-time"; // Default status
+    $dayOfWeek = date('l'); 
 
-            if ($schedule && $schedule['first_class_start']) {
-                $firstClassStart = strtotime($schedule['first_class_start']);
-                $currentTime = strtotime($now);
-                $gracePeriodSeconds = 15 * 60; // 15 minutes grace period
+    // --- NEW: Fetch Configurable Grace Period from DB ---
+    // Use the existing 'late_threshold_minutes' key from your database
+    $graceStmt = $db->query("SELECT setting_value FROM system_settings WHERE setting_key = 'late_threshold_minutes'");
+    $graceRow = $graceStmt->get_result()->fetch_assoc();
+    $graceMinutes = $graceRow ? (int)$graceRow['setting_value'] : 15; // Default to 15 if missing
+    // ----------------------------------------------------
 
-                if ($currentTime > ($firstClassStart + $gracePeriodSeconds)) {
-                    $timeInStatus = "Late";
-                }
-            }
+    // Check Schedule for Lateness
+    $scheduleStmt = $db->query(
+        "SELECT MIN(start_time) AS first_class_start 
+         FROM class_schedules 
+         WHERE user_id = ? AND day_of_week = ? AND status = 'approved'",
+        [$userId, $dayOfWeek], "is"
+    );
+    $schedule = $scheduleStmt->get_result()->fetch_assoc();
 
-            $db->query("INSERT INTO attendance_records (user_id, date, time_in, status) VALUES (?, ?, ?, ?)", 
-                [$userId, $today, $now, $timeInStatus], "isss");
-            
-            $status = ($timeInStatus === "Late") ? "Time In (Late)" : "Time In";
+    if ($schedule && $schedule['first_class_start']) {
+        $firstClassStart = strtotime($schedule['first_class_start']);
+        $currentTime = strtotime($now);
+        
+        // Use the fetched database value
+        $gracePeriodSeconds = $graceMinutes * 60; 
+
+        if ($currentTime > ($firstClassStart + $gracePeriodSeconds)) {
+            $timeInStatus = "Late";
         }
+    }
+
+    $db->query("INSERT INTO attendance_records (user_id, date, time_in, status) VALUES (?, ?, ?, ?)", 
+        [$userId, $today, $now, $timeInStatus], "isss");
+    
+    $status = ($timeInStatus === "Late") ? "Time In (Late)" : "Time In";
+}
 
         // 3. Return Data for Display
         echo json_encode([
@@ -97,7 +108,7 @@ class ApiController extends Controller {
      */
     public function getFingerprintTemplates() {
         header('Content-Type: application/json');
-        $db = new Database();
+        $db = Database::getInstance();
         
         $sql = "SELECT id, fingerprint_data FROM users WHERE fingerprint_data IS NOT NULL AND status = 'active'";
         $result = $db->query($sql);
@@ -140,7 +151,7 @@ class ApiController extends Controller {
             exit;
         }
         
-        $db = new Database();
+        $db = Database::getInstance();
         $db->query("UPDATE notifications SET is_read = 1 WHERE id = ? AND user_id = ?", [$notifId, $_SESSION['user_id']], "ii");
         
         echo json_encode(['success' => true, 'message' => 'Notification marked as read']);
@@ -161,7 +172,7 @@ class ApiController extends Controller {
             exit; 
         }
         
-        $db = new Database();
+        $db = Database::getInstance();
         $db->query(
             "UPDATE notifications SET is_read = 1 WHERE user_id = ? AND is_read = 0", 
             [$_SESSION['user_id']], 

@@ -15,15 +15,13 @@ class AuthController extends Controller {
                 $user = $userModel->findUserByUsername($username);
 
                 if ($user && password_verify($password, $user['password'])) {
-                    // --- FIX START: Set all necessary session variables ---
                     $_SESSION['user_id'] = $user['id'];
                     $_SESSION['faculty_id'] = $user['faculty_id'];
                     $_SESSION['role'] = $user['role'];
-                    $_SESSION['first_name'] = $user['first_name']; // Added
-                    $_SESSION['last_name'] = $user['last_name'];   // Added
+                    $_SESSION['first_name'] = $user['first_name'];
+                    $_SESSION['last_name'] = $user['last_name'];
                     $_SESSION['full_name'] = $user['first_name'] . ' ' . $user['last_name'];
                     $_SESSION['force_password_change'] = (int)$user['force_password_change'];
-                    // --- FIX END ---
 
                     $logModel = $this->model('ActivityLog');
                     $logModel->log($user['id'], 'Login', 'User logged in successfully');
@@ -83,7 +81,7 @@ class AuthController extends Controller {
                 $data['error'] = 'Password must be at least 8 characters.';
             } else {
                 $hashed = password_hash($new, PASSWORD_DEFAULT);
-                $db = new Database();
+                $db = Database::getInstance();
                 $db->query("UPDATE users SET password=?, force_password_change=0 WHERE id=?", [$hashed, $_SESSION['user_id']], "si");
                 
                 $_SESSION['force_password_change'] = 0;
@@ -119,32 +117,42 @@ class AuthController extends Controller {
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (isset($_POST['send_otp'])) {
+                // CHANGED: Require BOTH Email AND Faculty ID
                 $email = clean($_POST['email']);
-                $db = new Database();
-                $res = $db->query("SELECT * FROM users WHERE email = ? AND status = 'active'", [$email], "s");
+                $facultyId = clean($_POST['faculty_id']);
+                
+                $db = Database::getInstance();
+                
+                // Query must match BOTH
+                $res = $db->query(
+                    "SELECT * FROM users WHERE email = ? AND faculty_id = ? AND status = 'active'", 
+                    [$email, $facultyId], 
+                    "ss"
+                );
                 $user = $res->get_result()->fetch_assoc();
 
                 if ($user) {
-                $otp = strtoupper(substr(md5(time()), 0, 6));
-    
-                // --- UPDATED OTP EMAIL CONTENT ---
-                $body = "OTP for Password Reset:<br><br>";
-                $body .= "We received a request to reset your account password. To proceed, please use the One-Time Password (OTP) provided below. This code is valid for a limited time and for single use only.<br><br>";
-                $body .= "<strong>$otp</strong><br><br>"; // Keeping the OTP bold for visibility
-                $body .= "If you did not request a password reset, please disregard this message and ensure the security of your account.";
-    
-                if (sendEmail($email, 'Password Reset', $body)) {
+                    $otp = strtoupper(substr(md5(time()), 0, 6));
+        
+                    $body = "OTP for Password Reset:<br><br>";
+                    $body .= "We received a request to reset the password for Faculty ID: <strong>$facultyId</strong>.<br>";
+                    $body .= "To proceed, please use the One-Time Password (OTP) provided below.<br><br>";
+                    $body .= "<strong>$otp</strong><br><br>"; 
+                    $body .= "If you did not request a password reset, please disregard this message.";
+        
+                    if (sendEmail($email, 'Password Reset', $body)) {
                         $_SESSION['reset_user_id'] = $user['id'];
                         $_SESSION['reset_otp'] = $otp;
                         $_SESSION['reset_time'] = time();
                         $_SESSION['reset_otp_verified'] = false;
-                        $data['success'] = "OTP sent to your email.";
+                        
+                        $data['success'] = "Verification successful. OTP sent to your email.";
                         $data['step'] = 2;
                     } else {
-                        $data['error'] = "Could not send email.";
+                        $data['error'] = "Could not send email. Please check system configuration.";
                     }
                 } else {
-                    $data['error'] = "Email not found.";
+                    $data['error'] = "Details do not match our records.";
                 }
             }
 
@@ -168,13 +176,13 @@ class AuthController extends Controller {
                     $data['error'] = "Passwords do not match.";
                     $data['step'] = 3;
                 } elseif (strlen($new) < 8) {
-                    $data['error'] = "Password too short.";
+                    $data['error'] = "Password too short (min 8 chars).";
                     $data['step'] = 3;
                 } else {
                     $hashed = password_hash($new, PASSWORD_DEFAULT);
                     $uid = $_SESSION['reset_user_id'];
                     
-                    $db = new Database();
+                    $db = Database::getInstance();
                     $db->query("UPDATE users SET password = ? WHERE id = ?", [$hashed, $uid], "si");
                     
                     unset($_SESSION['reset_otp'], $_SESSION['reset_user_id'], $_SESSION['reset_time'], $_SESSION['reset_otp_verified']);

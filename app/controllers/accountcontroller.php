@@ -130,10 +130,18 @@ class AccountController extends Controller {
         $skipped = 0;
 
         while (($data = fgetcsv($handle)) !== false) {
-            if (count($data) < 8) continue;
+            // Adjusted count check since we removed 1 column
+            if (count($data) < 7) continue; 
             
             $facultyId = clean($data[0]);
-            if ($userModel->exists($facultyId) || strtolower(clean($data[5])) === 'admin') {
+            
+            // CSV Structure:
+            // 0: Faculty ID, 1: Last, 2: First, 3: Middle, 4: Role, 5: Email, 6: Phone
+            
+            // Logic: Username is same as Faculty ID
+            $username = $facultyId;
+
+            if ($userModel->exists($facultyId) || strtolower(clean($data[4])) === 'admin') {
                 $skipped++;
                 continue;
             }
@@ -143,10 +151,10 @@ class AccountController extends Controller {
                 'last_name' => clean($data[1]),
                 'first_name' => clean($data[2]),
                 'middle_name' => clean($data[3]),
-                'username' => clean($data[4]),
-                'role' => clean($data[5]),
-                'email' => clean($data[6]),
-                'phone' => $data[7] ?? '',
+                'username' => $username, // Auto-set
+                'role' => clean($data[4]), // Shifted index
+                'email' => clean($data[5]), // Shifted index
+                'phone' => $data[6] ?? '',  // Shifted index
                 'password' => password_hash('DefaultPass123!', PASSWORD_DEFAULT)
             ];
 
@@ -154,6 +162,7 @@ class AccountController extends Controller {
             if ($newId) {
                 $imported++;
                 $notifModel->create($newId, "Welcome! Please change your password.", 'success');
+                // Updated Email to not show random username but ID
                 sendEmail($userData['email'], "Your BPC Account", "Welcome! Credentials: {$userData['username']} / DefaultPass123!");
             }
         }

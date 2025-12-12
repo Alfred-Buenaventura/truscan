@@ -13,7 +13,8 @@ class DisplayController extends Controller {
         $data = json_decode(file_get_contents('php://input'), true);
         $notifId = $data['notification_id'] ?? null;
         
-        $db = new Database();
+        // FIX: Use Singleton
+        $db = Database::getInstance();
         $db->query("UPDATE notifications SET is_read = 1 WHERE id = ? AND user_id = ?", [$notifId, $_SESSION['user_id']], "ii");
         
         echo json_encode(['success' => true]);

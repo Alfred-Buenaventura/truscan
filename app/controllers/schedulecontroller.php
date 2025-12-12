@@ -365,7 +365,7 @@ class ScheduleController extends Controller {
      */
     private function notifyAdminsOfPendingSchedule($userId, $schedules) {
         $userModel = $this->model('User');
-        $db = new Database();
+        $db = Database::getInstance();
         
         // Get the user who submitted the schedule
         $submitter = $userModel->findById($userId);
