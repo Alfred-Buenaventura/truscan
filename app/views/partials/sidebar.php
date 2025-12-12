@@ -44,13 +44,12 @@
             <span class="nav-text">Schedule Management</span>
         </a>
         
-        <!-- NOTIFICATIONS BUTTON -->
         <button type="button" class="nav-item nav-item-button" onclick="openModal('notificationsModal')" id="notificationsBtn">
             <i class="fa-solid fa-bell nav-icon"></i>
             <span class="nav-text">Notifications</span>
             <?php
-            // Get unread notification count
-            $db = new Database();
+            // FIX: Use Singleton Instance
+            $db = Database::getInstance();
             $stmt = $db->query("SELECT COUNT(*) as count FROM notifications WHERE user_id = ? AND is_read = 0", [$_SESSION['user_id']], "i");
             $unreadCount = $stmt->get_result()->fetch_assoc()['count'] ?? 0;
             if ($unreadCount > 0):
@@ -103,7 +102,6 @@
 
 </aside>
 
-<!-- NOTIFICATIONS MODAL -->
 <div id="notificationsModal" class="modal">
     <div class="modal-content modal-small">
         <div class="modal-header">
@@ -114,8 +112,8 @@
         </div>
         <div class="modal-body" style="max-height: 60vh; overflow-y: auto;">
             <?php
-            // Fetch all notifications for the current user
-            $db = new Database();
+            // FIX: Use Singleton Instance
+            $db = Database::getInstance();
             $stmt = $db->query(
                 "SELECT * FROM notifications WHERE user_id = ? ORDER BY created_at DESC LIMIT 20", 
                 [$_SESSION['user_id']], 
@@ -171,7 +169,6 @@
 </div>
 
 <script>
-// Mark notification as read
 function markAsRead(notificationId) {
     fetch('api.php?action=mark_notification_read', {
         method: 'POST',
@@ -181,7 +178,6 @@ function markAsRead(notificationId) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            // Update UI
             const notifItem = document.querySelector(`.notification-item[data-id="${notificationId}"]`);
             if (notifItem) {
                 notifItem.classList.remove('unread');
@@ -189,23 +185,16 @@ function markAsRead(notificationId) {
                 const markBtn = notifItem.querySelector('.notification-mark-read');
                 if (markBtn) markBtn.remove();
             }
-            
-            // Update badge count
             const badge = document.querySelector('#notificationsBtn .notification-badge');
             if (badge) {
                 let count = parseInt(badge.textContent) - 1;
-                if (count <= 0) {
-                    badge.remove();
-                } else {
-                    badge.textContent = count;
-                }
+                if (count <= 0) badge.remove();
+                else badge.textContent = count;
             }
         }
-    })
-    .catch(err => console.error('Error marking notification as read:', err));
+    });
 }
 
-// NEW: Mark all notifications as read
 function markAllAsRead() {
     fetch('api.php?action=mark_all_notifications_read', {
         method: 'POST',
@@ -214,22 +203,16 @@ function markAllAsRead() {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            // Update all notification items in UI
             document.querySelectorAll('.notification-item.unread').forEach(item => {
                 item.classList.remove('unread');
                 item.classList.add('read');
                 const markBtn = item.querySelector('.notification-mark-read');
                 if (markBtn) markBtn.remove();
             });
-            
-            // Remove badge
             const badge = document.querySelector('#notificationsBtn .notification-badge');
             if (badge) badge.remove();
-            
-            // Close modal
             closeModal('notificationsModal');
         }
-    })
-    .catch(err => console.error('Error marking all as read:', err));
+    });
 }
 </script>
