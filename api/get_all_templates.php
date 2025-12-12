@@ -18,7 +18,7 @@ try {
     require_once __DIR__ . '/../app/init.php';
     
     // Create database instance
-    $database = new Database();
+    $database = Database::getInstance();
     $db = $database->conn;
     
     // Check connection
