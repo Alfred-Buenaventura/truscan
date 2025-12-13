@@ -17,7 +17,7 @@
                 <h3>Create New Admin Account</h3>
             </div>
             <p class="user-creation-subtitle">
-                Create a single administrator account. The default password will be <strong>DefaultPass123!</strong>
+                Create a single administrator account. The default password will be <strong>Admin_2025!</strong>
             </p>
             
             <form method="POST" style="margin-top: 1.5rem;">
@@ -53,11 +53,11 @@
                 </div>
 
                 <div class="password-info-box" style="margin-top: 1.5rem;">
-                    <i class="fa-solid fa-circle-info"></i>
-                    <div>
-                        <strong>Note:</strong> The new admin user will be assigned the default password <strong>DefaultPass123!</strong> and will be required to change it upon their first login.
-                    </div>
-                </div>
+    <i class="fa-solid fa-circle-info"></i>
+    <div>
+        <strong>Security Notice:</strong> The new admin will be assigned the secure default password <strong>Admin_2025!</strong>. They must change it immediately.
+    </div>
+</div>
 
                 <button type="submit" name="create_admin" class="btn btn-primary btn-full-width" style="margin-top: 1.5rem;">
                     <i class="fa-solid fa-user-plus"></i>

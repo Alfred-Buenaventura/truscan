@@ -55,53 +55,15 @@ if (!function_exists('renderScheduleTable')) {
 ?>
 
 <div class="main-body">
-    <?php if ($error): ?>
-        <div class="alert alert-error"><?= htmlspecialchars($error) ?></div>
-    <?php endif; ?>
-    
-    <?php if ($success): ?>
-        <div class="alert alert-success"><?= htmlspecialchars($success) ?></div>
-    <?php endif; ?>
+    <?php if ($error): ?> <div class="alert alert-error"><?= htmlspecialchars($error) ?></div> <?php endif; ?>
+    <?php if ($success): ?> <div class="alert alert-success"><?= htmlspecialchars($success) ?></div> <?php endif; ?>
 
     <div class="stats-grid schedule-stats-grid">
-        <?php if (!empty($selectedUserInfo) && isset($userStats)): ?>
+         <?php if (!empty($selectedUserInfo) && isset($userStats)): ?>
+            <?php elseif ($isAdmin): ?>
             <div class="stat-card stat-card-small">
-                <div class="stat-icon emerald"><i class="fa-solid fa-user"></i></div>
-                <div class="stat-details">
-                    <p>Viewing Schedule</p>
-                    <div class="stat-value-name"><?= htmlspecialchars($selectedUserInfo['first_name'] . ' ' . $selectedUserInfo['last_name']) ?></div>
-                </div>
-            </div>
-            <div class="stat-card stat-card-small">
-                <div class="stat-icon emerald"><i class="fa-solid fa-clock"></i></div>
-                <div class="stat-details">
-                    <p>Total Hours</p>
-                    <div class="stat-value emerald"><?= number_format($userStats['total_hours'], 1) ?>h</div>
-                </div>
-            </div>
-            <div class="stat-card stat-card-small">
-                <div class="stat-icon blue"><i class="fa-solid fa-calendar-week"></i></div>
-                <div class="stat-details">
-                    <p>Duty Span</p>
-                    <div class="stat-value blue"><?= number_format($userStats['duty_span'], 1) ?>h</div>
-                </div>
-            </div>
-        <?php elseif ($isAdmin): ?>
-            <div class="stat-card stat-card-small">
-                <div class="stat-icon emerald"><i class="fa-solid fa-calendar-check"></i></div>
-                <div class="stat-details"><p>Approved Schedules</p><div class="stat-value emerald"><?= $stats['total_schedules'] ?? 0 ?></div></div>
-            </div>
-            <div class="stat-card stat-card-small">
-                <div class="stat-icon blue"><i class="fa-solid fa-book-open"></i></div>
-                <div class="stat-details"><p>Total Classes</p><div class="stat-value blue"><?= $stats['total_subjects'] ?? 0 ?></div></div>
-            </div>
-            <div class="stat-card stat-card-small">
-                <div class="stat-icon" style="background: #e0e7ff; color: #4f46e5;"><i class="fa-solid fa-users"></i></div>
-                <div class="stat-details"><p>Total Staff</p><div class="stat-value" style="color: #4338ca;"><?= count($users) ?></div></div>
-            </div>
-             <div class="stat-card stat-card-small">
                 <div class="stat-icon yellow"><i class="fa-solid fa-hourglass-half"></i></div>
-                <div class="stat-details"><p>Pending Approval</p><div class="stat-value yellow"><?= count($pendingSchedules) ?></div></div>
+                <div class="stat-details"><p>Pending Approval</p><div class="stat-value yellow"><?= $pendingCount ?></div></div>
             </div>
         <?php endif; ?>
     </div>
@@ -121,44 +83,45 @@ if (!function_exists('renderScheduleTable')) {
             </div>
         </div>
 
+        <?php if ($isAdmin): ?>
+        <div style="padding: 1rem 1.5rem 0 1.5rem;">
+            <form method="GET" class="schedule-filter-form" style="display: flex; gap: 10px;">
+                <input type="hidden" name="tab" value="<?= $activeTab ?>"> <div class="form-group" style="flex: 1; margin: 0;">
+                    <div class="input-icon-wrapper" style="position: relative;">
+                        <i class="fa-solid fa-search" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #9ca3af;"></i>
+                        <input type="text" name="search" class="form-control" 
+                               placeholder="Search by Faculty ID, Name, or User ID..." 
+                               value="<?= htmlspecialchars($searchQuery) ?>" 
+                               style="padding-left: 35px;">
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary btn-sm">Filter</button>
+                <?php if(!empty($searchQuery)): ?>
+                    <a href="schedule_management.php?tab=<?= $activeTab ?>" class="btn btn-secondary btn-sm">Clear</a>
+                <?php endif; ?>
+            </form>
+        </div>
+        <?php endif; ?>
+
         <div class="tabs">
             <button class="tab-btn <?= $activeTab === 'manage' ? 'active' : '' ?>" onclick="showScheduleTab(event, 'manage')">
                 <i class="fa-solid fa-calendar-check"></i> Approved Schedules
             </button>
             <button class="tab-btn <?= $activeTab === 'pending' ? 'active' : '' ?>" onclick="showScheduleTab(event, 'pending')">
                 <i class="fa-solid fa-file-circle-question"></i> Pending Approval 
-                <?php if (count($pendingSchedules) > 0): ?>
-                    <span class="notification-count-badge"><?= count($pendingSchedules) ?></span>
+                <?php if ($pendingCount > 0): ?>
+                    <span class="notification-count-badge"><?= $pendingCount ?></span>
                 <?php endif; ?>
             </button>
         </div>
         
         <div id="manageTab" class="tab-content <?= $activeTab === 'manage' ? 'active' : '' ?>">
             <div class="card-body">
-                
-                <form method="GET" class="schedule-filter-form">
-                    <div class="schedule-filter-grid">
-                        <?php if ($isAdmin): ?>
-                        <div class="form-group">
-                            <label>Filter by User</label>
-                            <select name="user_id" class="form-control" onchange="this.form.submit()">
-                                <option value="">View All Users</option>
-                                <?php foreach ($users as $user): ?>
-                                    <option value="<?= $user['id'] ?>" <?= $selectedUserId == $user['id'] ? 'selected' : '' ?>>
-                                        <?= htmlspecialchars($user['first_name'] . ' ' . $user['last_name']) ?>
-                                    </option>
-                                <?php endforeach; ?>
-                            </select>
-                        </div>
-                        <?php endif; ?>
-                    </div>
-                </form>
-
-                <?php if ($isAdmin && empty($filters['user_id'])): ?>
+                <?php if ($isAdmin): ?>
                     <?php if (empty($groupedApprovedSchedules)): ?>
                         <div class="empty-state">
                             <i class="fa-solid fa-calendar-xmark"></i>
-                            <p>No approved schedules found.</p>
+                            <p>No approved schedules found matching your criteria.</p>
                         </div>
                     <?php else: ?>
                         <div class="user-schedule-accordion">
@@ -169,7 +132,7 @@ if (!function_exists('renderScheduleTable')) {
                                             <div class="user-avatar-small"><?= strtoupper(substr($userData['user_info']['first_name'],0,1)) ?></div>
                                             <div>
                                                 <span class="user-name"><?= htmlspecialchars($userData['user_info']['first_name'] . ' ' . $userData['user_info']['last_name']) ?></span>
-                                                <span class="user-id"><?= htmlspecialchars($userData['user_info']['faculty_id']) ?></span>
+                                                <span class="user-id">ID: <?= htmlspecialchars($userData['user_info']['faculty_id']) ?></span>
                                             </div>
                                         </div>
                                         <div class="user-stats-col">
@@ -182,57 +145,27 @@ if (!function_exists('renderScheduleTable')) {
 
                                     <div class="user-schedule-body">
                                         <?php 
+                                            // Sort days/time... (Keep existing sort logic)
                                             $days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
                                             $dailySchedules = [];
-                                            foreach ($userData['schedules'] as $s) {
-                                                $dailySchedules[$s['day_of_week']][] = $s;
-                                            }
+                                            foreach ($userData['schedules'] as $s) { $dailySchedules[$s['day_of_week']][] = $s; }
                                         ?>
-                                        
                                         <div class="daily-schedule-container">
                                             <?php foreach ($days as $day): ?>
                                                 <?php if (!empty($dailySchedules[$day])): ?>
                                                     <div class="day-group">
                                                         <div class="day-header"><?= $day ?></div>
                                                         <table class="day-table">
-                                                            <thead>
-                                                                <tr>
-                                                                    <th>Subject / Duty</th>
-                                                                    <th>Time</th>
-                                                                    <th>Room / Department</th>
-                                                                    <th style="width: 100px;">Actions</th>
-                                                                </tr>
-                                                            </thead>
+                                                            <thead><tr><th>Subject / Duty</th><th>Time</th><th>Room</th><th style="width: 100px;">Actions</th></tr></thead>
                                                             <tbody>
-                                                                <?php 
-                                                                usort($dailySchedules[$day], function($a, $b) {
-                                                                    return strtotime($a['start_time']) - strtotime($b['start_time']);
-                                                                });
-                                                                foreach ($dailySchedules[$day] as $sched): 
-                                                                ?>
+                                                                <?php foreach ($dailySchedules[$day] as $sched): ?>
                                                                 <tr>
                                                                     <td style="font-weight: 600;"><?= htmlspecialchars($sched['subject']) ?></td>
-                                                                    <td>
-                                                                        <div class="time-pill">
-                                                                            <?= date('g:i A', strtotime($sched['start_time'])) ?> - <?= date('g:i A', strtotime($sched['end_time'])) ?>
-                                                                        </div>
-                                                                    </td>
+                                                                    <td><?= date('g:i A', strtotime($sched['start_time'])) ?> - <?= date('g:i A', strtotime($sched['end_time'])) ?></td>
                                                                     <td><?= htmlspecialchars($sched['room']) ?></td>
                                                                     <td>
-                                                                        <button class="btn-icon" onclick="openEditModal(
-                                                                            <?= $sched['id'] ?>,
-                                                                            <?= $sched['user_id'] ?>,
-                                                                            '<?= $sched['day_of_week'] ?>',
-                                                                            '<?= htmlspecialchars($sched['subject'], ENT_QUOTES) ?>',
-                                                                            '<?= date('H:i', strtotime($sched['start_time'])) ?>',
-                                                                            '<?= date('H:i', strtotime($sched['end_time'])) ?>',
-                                                                            '<?= htmlspecialchars($sched['room'], ENT_QUOTES) ?>'
-                                                                        )" title="Edit">
-                                                                            <i class="fa-solid fa-pen"></i>
-                                                                        </button>
-                                                                        <button class="btn-icon danger" onclick="openDeleteModal(<?= $sched['id'] ?>, <?= $sched['user_id'] ?>)" title="Delete">
-                                                                            <i class="fa-solid fa-trash"></i>
-                                                                        </button>
+                                                                        <button class="btn-icon" onclick="openEditModal(<?= $sched['id'] ?>, <?= $sched['user_id'] ?>, '<?= $sched['day_of_week'] ?>', '<?= htmlspecialchars($sched['subject'], ENT_QUOTES) ?>', '<?= date('H:i', strtotime($sched['start_time'])) ?>', '<?= date('H:i', strtotime($sched['end_time'])) ?>', '<?= htmlspecialchars($sched['room'], ENT_QUOTES) ?>')"><i class="fa-solid fa-pen"></i></button>
+                                                                        <button class="btn-icon danger" onclick="openDeleteModal(<?= $sched['id'] ?>, <?= $sched['user_id'] ?>)"><i class="fa-solid fa-trash"></i></button>
                                                                     </td>
                                                                 </tr>
                                                                 <?php endforeach; ?>
@@ -247,196 +180,106 @@ if (!function_exists('renderScheduleTable')) {
                             <?php endforeach; ?>
                         </div>
                     <?php endif; ?>
-
                 <?php else: ?>
-                    <?php if (empty($approvedSchedules)): ?>
-                         <div class="empty-state">
-                            <i class="fa-solid fa-calendar-plus"></i>
-                            <p>No schedules added yet.</p>
-                        </div>
-                    <?php else: ?>
-                        <?php renderScheduleTable($approvedSchedules, false, $isAdmin); ?>
-                    <?php endif; ?>
+                    <?php renderScheduleTable($approvedSchedules, false, $isAdmin); ?>
                 <?php endif; ?>
             </div>
         </div>
 
         <div id="pendingTab" class="tab-content <?= $activeTab === 'pending' ? 'active' : '' ?>">
             <div class="card-body">
-                <?php if (empty($pendingSchedules)): ?>
-                    <div class="empty-state">
-                        <i class="fa-solid fa-check-double"></i>
-                        <p>No pending approvals.</p>
-                    </div>
-                <?php else: ?>
-                    
-                    <form method="POST" id="bulkActionForm">
-                        <input type="hidden" name="bulk_action_type" id="bulkActionInput">
-
-                        <?php if ($isAdmin): ?>
-                        <div class="bulk-actions-bar" style="margin-bottom: 1rem; display: flex; gap: 10px; align-items: center;">
-                            <strong style="margin-right: auto;">Bulk Actions:</strong>
-                            
-                            <button type="button" class="btn btn-success btn-sm" onclick="openBulkApproveModal()">
-                                <i class="fa-solid fa-check-double"></i> Approve Selected
-                            </button>
-                            
-                            <button type="submit" onclick="document.getElementById('bulkActionInput').value='decline'; return confirm('Decline selected?');" class="btn btn-danger btn-sm">
-                                <i class="fa-solid fa-times"></i> Decline Selected
-                            </button>
+                <?php if ($isAdmin): ?>
+                    <?php if (empty($groupedPendingSchedules)): ?>
+                        <div class="empty-state">
+                            <i class="fa-solid fa-check-double"></i>
+                            <p>No pending approvals found.</p>
                         </div>
-                        <?php endif; ?>
+                    <?php else: ?>
+                        <form method="POST" id="bulkActionForm">
+                            <input type="hidden" name="bulk_action_type" id="bulkActionInput">
+                            
+                            <div class="bulk-actions-bar" style="margin-bottom: 1rem; padding: 10px; background: #f3f4f6; border-radius: 8px; display: flex; gap: 10px; align-items: center;">
+                                <strong style="margin-right: auto; color: #374151;">With Selected:</strong>
+                                <button type="button" class="btn btn-success btn-sm" onclick="openBulkApproveModal()">
+                                    <i class="fa-solid fa-check-double"></i> Approve
+                                </button>
+                                <button type="submit" onclick="document.getElementById('bulkActionInput').value='decline'; return confirm('Decline selected?');" class="btn btn-danger btn-sm">
+                                    <i class="fa-solid fa-times"></i> Decline
+                                </button>
+                            </div>
 
+                            <div class="user-schedule-accordion">
+                                <?php foreach ($groupedPendingSchedules as $uid => $userData): ?>
+                                    <div class="user-schedule-group">
+                                        <div class="user-schedule-header" onclick="toggleScheduleGroup(this.parentNode.querySelector('.user-schedule-header'))">
+                                            <div class="user-info-col">
+                                                 <div class="user-avatar-small" style="background: #f59e0b;"><?= strtoupper(substr($userData['user_info']['first_name'],0,1)) ?></div>
+                                                <div>
+                                                    <span class="user-name"><?= htmlspecialchars($userData['user_info']['first_name'] . ' ' . $userData['user_info']['last_name']) ?></span>
+                                                    <span class="user-id">ID: <?= htmlspecialchars($userData['user_info']['faculty_id']) ?></span>
+                                                </div>
+                                            </div>
+                                            <div class="user-toggle-col">
+                                                <button type="button" class="btn btn-xs btn-outline" onclick="event.stopPropagation(); selectAllForUser(this, '<?= $uid ?>')">Select All</button>
+                                                <i class="fa-solid fa-chevron-down schedule-group-icon"></i>
+                                            </div>
+                                        </div>
+
+                                        <div class="user-schedule-body">
+                                            <table class="data-table" style="margin-top: 0;">
+                                                <thead>
+                                                    <tr>
+                                                        <th style="width: 40px;"></th>
+                                                        <th>Day</th>
+                                                        <th>Subject / Duty</th>
+                                                        <th>Time</th>
+                                                        <th>Room</th>
+                                                        <th style="text-align: right;">Actions</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <?php foreach ($userData['schedules'] as $sched): ?>
+                                                    <tr>
+                                                        <td><input type="checkbox" name="selected_schedules[]" value="<?= $sched['id'] ?>" class="user-checkbox-<?= $uid ?>"></td>
+                                                        <td><span class="day-badge"><?= $sched['day_of_week'] ?></span></td>
+                                                        <td><?= htmlspecialchars($sched['subject']) ?></td>
+                                                        <td><?= date('g:i A', strtotime($sched['start_time'])) ?> - <?= date('g:i A', strtotime($sched['end_time'])) ?></td>
+                                                        <td><?= htmlspecialchars($sched['room']) ?></td>
+                                                        <td style="text-align: right;">
+                                                            <button type="button" class="btn btn-sm btn-success" onclick="submitSingleAction('approve', <?= $sched['id'] ?>)"><i class="fa-solid fa-check"></i></button>
+                                                            <button type="button" class="btn btn-sm btn-danger" onclick="submitSingleAction('decline', <?= $sched['id'] ?>)"><i class="fa-solid fa-times"></i></button>
+                                                        </td>
+                                                    </tr>
+                                                    <?php endforeach; ?>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                <?php endforeach; ?>
+                            </div>
+                        </form>
+                    <?php endif; ?>
+                <?php else: ?>
+                    <?php if (empty($pendingSchedules)): ?>
+                        <div class="empty-state"><i class="fa-solid fa-check-double"></i><p>No pending approvals.</p></div>
+                    <?php else: ?>
                         <table class="data-table">
-                            <thead>
-                                <tr>
-                                    <?php if ($isAdmin): ?>
-                                        <th style="width: 40px;"><input type="checkbox" onclick="toggleAll(this)"></th>
-                                        <th>User</th>
-                                    <?php endif; ?>
-                                    <th>Day</th>
-                                    <th>Subject / Duty</th>
-                                    <th>Time</th>
-                                    <th>Room / Department</th>
-                                    <?php if ($isAdmin): ?>
-                                        <th style="text-align: right;">Actions</th>
-                                    <?php endif; ?>
-                                </tr>
-                            </thead>
+                            <thead><tr><th>Day</th><th>Subject</th><th>Time</th><th>Room</th></tr></thead>
                             <tbody>
                                 <?php foreach ($pendingSchedules as $sched): ?>
                                 <tr>
-                                    <?php if ($isAdmin): ?>
-                                        <td><input type="checkbox" name="selected_schedules[]" value="<?= $sched['id'] ?>"></td>
-                                        <td><strong><?= htmlspecialchars($sched['first_name'] . ' ' . $sched['last_name']) ?></strong><br><small class="text-muted"><?= htmlspecialchars($sched['faculty_id']) ?></small></td>
-                                    <?php endif; ?>
                                     <td><span class="day-badge"><?= $sched['day_of_week'] ?></span></td>
                                     <td><?= htmlspecialchars($sched['subject']) ?></td>
-                                    <td><?= date('g:i A', strtotime($sched['start_time'])) ?> - <?= date('g:i A', strtotime($sched['end_time'])) ?></td>
+                                    <td><?= date('g:i A', strtotime($sched['start_time'])) ?> - ...</td>
                                     <td><?= htmlspecialchars($sched['room']) ?></td>
-                                    
-                                    <?php if ($isAdmin): ?>
-                                    <td style="text-align: right;">
-                                        <button type="button" class="btn btn-sm btn-success" onclick="submitSingleAction('approve', <?= $sched['id'] ?>)"><i class="fa-solid fa-check"></i></button>
-                                        <button type="button" class="btn btn-sm btn-danger" onclick="submitSingleAction('decline', <?= $sched['id'] ?>)"><i class="fa-solid fa-times"></i></button>
-                                    </td>
-                                    <?php endif; ?>
                                 </tr>
                                 <?php endforeach; ?>
                             </tbody>
                         </table>
-                    </form>
-                    
-                    <form method="POST" id="singleActionForm" style="display:none;">
-                        <input type="hidden" name="schedule_id" id="single_schedule_id">
-                        <input type="hidden" name="approve_schedule" id="btn_approve" disabled>
-                        <input type="hidden" name="decline_schedule" id="btn_decline" disabled>
-                    </form>
-
+                    <?php endif; ?>
                 <?php endif; ?>
             </div>
         </div>
-    </div>
-</div>
-
-<div id="addScheduleModal" class="modal">
-    <div class="modal-content modal-lg">
-        <form method="POST">
-            <div class="modal-header">
-                <h3><i class="fa-solid fa-calendar-plus"></i> Add Schedule</h3>
-                <button type="button" class="modal-close" onclick="closeModal('addScheduleModal')">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div class="alert alert-info" style="margin-top: 0; margin-bottom: 1rem; padding: 0.75rem; font-size: 0.9rem;">
-                    <i class="fa-solid fa-circle-info"></i> You can add multiple subjects at once.
-                </div>
-                
-                <div id="schedule-entry-list">
-                    </div>
-                
-                <button type="button" class="btn btn-secondary btn-sm" onclick="addScheduleRow()" style="margin-top: 1rem;">
-                    <i class="fa-solid fa-plus"></i> Add Another Subject
-                </button>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" onclick="closeModal('addScheduleModal')">Cancel</button>
-                <button type="submit" name="add_schedule" class="btn btn-primary">
-                    <i class="fa-solid fa-paper-plane"></i> Submit for Approval
-                </button>
-            </div>
-        </form>
-    </div>
-</div>
-
-<div id="bulkApproveModal" class="modal">
-    <div class="modal-content modal-small">
-        <div class="modal-header">
-            <h3><i class="fa-solid fa-circle-check"></i> Confirm Approval</h3>
-            <button type="button" class="modal-close" onclick="closeModal('bulkApproveModal')">&times;</button>
-        </div>
-        <div class="modal-body">
-            <p style="font-size: 1.1rem; color: var(--gray-800); margin-bottom: 0.5rem;">Are you sure you want to approve the selected schedules?</p>
-            <p style="font-size: 0.9rem; color: var(--gray-600);"><span id="bulkCountDisplay">0</span> schedules will be added to the official calendar.</p>
-        </div>
-        <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" onclick="closeModal('bulkApproveModal')">Cancel</button>
-            <button type="button" class="btn btn-success" onclick="confirmBulkApprove()"><i class="fa-solid fa-check"></i> Yes, Approve</button>
-        </div>
-    </div>
-</div>
-
-<div id="deleteScheduleModal" class="modal">
-    <div class="modal-content modal-small">
-        <form method="POST">
-            <div class="modal-header danger">
-                <h3><i class="fa-solid fa-trash"></i> Delete?</h3>
-                <button type="button" class="modal-close" onclick="closeModal('deleteScheduleModal')">&times;</button>
-            </div>
-            <div class="modal-body"><p>Are you sure you want to delete this schedule?</p>
-                <input type="hidden" name="schedule_id_delete" id="deleteScheduleId">
-                <input type="hidden" name="user_id_delete" id="deleteUserId">
-            </div>
-            <div class="modal-footer"><button type="submit" name="delete_schedule" class="btn btn-danger">Delete</button></div>
-        </form>
-    </div>
-</div>
-
-<div id="editScheduleModal" class="modal">
-    <div class="modal-content">
-        <form method="POST">
-            <input type="hidden" name="schedule_id_edit" id="editScheduleId">
-            <input type="hidden" name="user_id_edit" id="editUserId">
-            
-            <div class="modal-header"><h3><i class="fa-solid fa-pen-to-square"></i> Edit Schedule</h3><button type="button" class="modal-close" onclick="closeModal('editScheduleModal')">&times;</button></div>
-            <div class="modal-body">
-                <div class="form-group" style="margin-bottom: 1rem;">
-                    <label>Day of Week</label>
-                    <select name="day_of_week_edit" id="editDay" class="form-control">
-                        <option>Monday</option><option>Tuesday</option><option>Wednesday</option><option>Thursday</option><option>Friday</option><option>Saturday</option>
-                    </select>
-                </div>
-                <div class="form-group" style="margin-bottom: 1rem;">
-                    <label>Subject / Duty</label>
-                    <input type="text" name="subject_edit" id="editSubject" class="form-control" required>
-                </div>
-                <div class="form-group" style="margin-bottom: 1rem;">
-                    <label>Start Time</label>
-                    <input type="time" name="start_time_edit" id="editStartTime" class="form-control" required>
-                </div>
-                <div class="form-group" style="margin-bottom: 1rem;">
-                    <label>End Time</label>
-                    <input type="time" name="end_time_edit" id="editEndTime" class="form-control" required>
-                </div>
-                <div class="form-group">
-                    <label>Room / Department</label>
-                    <input type="text" name="room_edit" id="editRoom" class="form-control">
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" onclick="closeModal('editScheduleModal')">Cancel</button>
-                <button type="submit" name="edit_schedule" class="btn btn-primary">Save Changes</button>
-            </div>
-        </form>
     </div>
 </div>
 
