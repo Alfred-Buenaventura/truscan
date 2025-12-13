@@ -101,14 +101,30 @@ class AccountController extends Controller {
             $logModel->log($_SESSION['user_id'], 'User Created', "Created user: $facultyId");
             $notifModel->create($newId, "Welcome! Your account has been created.", 'success');
     
-            // --- UPDATED EMAIL CONTENT ---
-            $msg = "Welcome {$userData['first_name']}. Your account has been successfully created. Below are your login credentials. For security, please change your password upon your first login.<br><br>";
-            $msg .= "Username: {$userData['username']}<br>";
-            $msg .= "Password: DefaultPass123!<br><br>";
-            $msg .= "Please keep these information confidential. If you encounter any issues or have questions please feel free to contact us or the admin. Welcome Aboard!";
+            $subject = "Welcome to Bulacan Polytechnic College - Account Credentials";
+                $msg = "
+                <html>
+                <body style='font-family: Arial, sans-serif; color: #333;'>
+                    <div style='padding: 20px; border: 1px solid #ddd; border-radius: 5px; max-width: 600px;'>
+                        <h2 style='color: #047857;'>Welcome to Bulacan Polytechnic College</h2>
+                        <p>Dear " . $userData['first_name'] . ",</p>
+                        <p>Your account for the <strong>Attendance Monitoring System</strong> has been successfully created.</p>
+                        
+                        <div style='background: #f9fafb; padding: 15px; border-radius: 5px; margin: 20px 0;'>
+                            <p style='margin: 5px 0;'><strong>Username:</strong> " . $userData['username'] . "</p>
+                            <p style='margin: 5px 0;'><strong>Temporary Password:</strong> DefaultPass123!</p>
+                        </div>
+                        
+                        <p>For security purposes, please log in and change your password immediately.</p>
+                        
+                        <hr style='border: 0; border-top: 1px solid #eee; margin: 20px 0;'>
+                        <p style='font-size: 12px; color: #777;'>This is an automated message. Please do not reply.</p>
+                    </div>
+                </body>
+                </html>
+                ";
     
-            sendEmail($userData['email'], "Your BPC Account", $msg);
-
+            sendEmail($userData['email'], "BPC Attendance System Account Successfully Created!", $msg);
             $this->setFlash("User Account for {$userData['first_name']} created!", 'success', 'create');
             }
 

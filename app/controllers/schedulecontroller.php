@@ -18,11 +18,14 @@ class ScheduleController extends Controller {
             'error' => '',
             'success' => '',
             'activeTab' => $_GET['tab'] ?? 'manage',
+            'searchQuery' => $_GET['search'] ?? '', // <--- ADD THIS LINE
             'filters' => ['user_id' => $_GET['user_id'] ?? null],
             'users' => [],
             'approvedSchedules' => [],
             'groupedApprovedSchedules' => [],
+            'groupedPendingSchedules' => [], 
             'pendingSchedules' => [],
+            'pendingCount' => 0,
             'stats' => [],
             'selectedUserId' => $_GET['user_id'] ?? null,
             'selectedUserInfo' => null,
@@ -37,13 +40,11 @@ class ScheduleController extends Controller {
                 // --- APPROVAL / DECLINE ACTIONS ---
                 if (isset($_POST['approve_schedule']) || isset($_POST['decline_schedule']) || isset($_POST['bulk_action_type'])) {
                     $this->requireAdmin();
-                    
                     $itemsToProcess = [];
                     $action = ''; 
 
-                    // Determine if Bulk or Single
                     if (isset($_POST['bulk_action_type'])) {
-                        $action = $_POST['bulk_action_type']; // 'approve' or 'decline'
+                        $action = $_POST['bulk_action_type'];
                         $itemsToProcess = $_POST['selected_schedules'] ?? [];
                     } else {
                         $action = isset($_POST['approve_schedule']) ? 'approve' : 'decline';
@@ -54,12 +55,10 @@ class ScheduleController extends Controller {
                         $data['error'] = "No schedules selected.";
                     } else {
                         $processedCount = 0;
-                        $usersToNotify = []; // Structure: [user_id => ['days' => [...], 'schedules' => [...]]]
+                        $usersToNotify = [];
 
                         foreach ($itemsToProcess as $schedId) {
-                            // 1. FETCH DETAILS BEFORE ACTION
                             $schedInfo = $scheduleModel->findById($schedId);
-                            
                             if ($schedInfo) {
                                 $success = false;
                                 if ($action === 'approve') {
@@ -70,16 +69,9 @@ class ScheduleController extends Controller {
 
                                 if ($success) {
                                     $processedCount++;
-                                    
-                                    // Initialize user entry if not exists
                                     if (!isset($usersToNotify[$schedInfo['user_id']])) {
-                                        $usersToNotify[$schedInfo['user_id']] = [
-                                            'days' => [],
-                                            'schedules' => []
-                                        ];
+                                        $usersToNotify[$schedInfo['user_id']] = ['days' => [], 'schedules' => []];
                                     }
-                                    
-                                    // Store day and full schedule info
                                     $usersToNotify[$schedInfo['user_id']]['days'][] = $schedInfo['day_of_week'];
                                     $usersToNotify[$schedInfo['user_id']]['schedules'][] = [
                                         'day' => $schedInfo['day_of_week'],
@@ -138,9 +130,8 @@ class ScheduleController extends Controller {
 
                 // --- ADD SCHEDULE ---
                 elseif (isset($_POST['add_schedule'])) {
-                    $userId = $_POST['user_id'] ?? $_SESSION['user_id'];
+                     $userId = $_POST['user_id'] ?? $_SESSION['user_id'];
                     $schedules = [];
-                    
                     for ($i = 0; $i < count($_POST['day_of_week']); $i++) {
                         $schedules[] = [ 
                             'day' => $_POST['day_of_week'][$i], 
@@ -150,69 +141,51 @@ class ScheduleController extends Controller {
                             'room' => $_POST['room'][$i] 
                         ];
                     }
-                    
                     if ($scheduleModel->create($userId, $schedules, $data['isAdmin'])) {
                         $data['success'] = "Schedule(s) added successfully.";
-                        
-                        // NEW: Notify ALL admins if this is a user submission (pending approval)
-                        if (!$data['isAdmin']) {
-                            $this->notifyAdminsOfPendingSchedule($userId, $schedules);
-                        }
-                    } else {
-                        $data['error'] = "Failed to add schedule(s).";
-                    }
+                        if (!$data['isAdmin']) { $this->notifyAdminsOfPendingSchedule($userId, $schedules); }
+                    } else { $data['error'] = "Failed to add schedule(s)."; }
                 }
-                
                 // --- DELETE SCHEDULE ---
                 elseif (isset($_POST['delete_schedule'])) {
-                    if ($scheduleModel->delete($_POST['schedule_id_delete'], $_POST['user_id_delete'], $data['isAdmin'])) {
+                     if ($scheduleModel->delete($_POST['schedule_id_delete'], $_POST['user_id_delete'], $data['isAdmin'])) {
                         $data['success'] = "Schedule deleted successfully.";
-                        $logModel->log($adminId, "Schedule Deleted", "Deleted schedule ID: " . $_POST['schedule_id_delete']);
-                    } else {
-                        $data['error'] = "Failed to delete schedule.";
-                    }
+                    } else { $data['error'] = "Failed to delete schedule."; }
                 }
-                
                 // --- EDIT SCHEDULE ---
                 elseif (isset($_POST['edit_schedule'])) {
                     $this->requireAdmin();
-                    
-                    if ($scheduleModel->update(
-                        $_POST['schedule_id_edit'], 
-                        $_POST['day_of_week_edit'], 
-                        $_POST['subject_edit'], 
-                        $_POST['start_time_edit'], 
-                        $_POST['end_time_edit'], 
-                        $_POST['room_edit']
-                    )) {
+                    if ($scheduleModel->update($_POST['schedule_id_edit'], $_POST['day_of_week_edit'], $_POST['subject_edit'], $_POST['start_time_edit'], $_POST['end_time_edit'], $_POST['room_edit'])) {
                         $data['success'] = "Schedule updated successfully.";
-                        $logModel->log($adminId, "Schedule Updated", "Updated schedule ID: " . $_POST['schedule_id_edit']);
-                    } else {
-                        $data['error'] = "Failed to update schedule.";
-                    }
+                    } else { $data['error'] = "Failed to update schedule."; }
                 }
             }
         } catch (Exception $e) {
             $data['error'] = 'System error: ' . $e->getMessage();
         }
 
-        // --- LOAD VIEW DATA ---
         if ($data['isAdmin']) {
-            $data['users'] = $userModel->getAllStaff();
-            $data['pendingSchedules'] = $scheduleModel->getAllByStatus('pending');
             $data['stats'] = $scheduleModel->getAdminStats();
             
-            if (!empty($data['selectedUserId'])) {
-                $data['approvedSchedules'] = $scheduleModel->getByUser($data['selectedUserId'], 'approved');
-                $data['selectedUserInfo'] = $userModel->findById($data['selectedUserId']);
-                $data['userStats'] = $scheduleModel->getUserStats($data['selectedUserId']);
-            } else {
-                $data['groupedApprovedSchedules'] = $scheduleModel->getAllApprovedGroupedByUser();
-            }
+            // Get raw count for badge before filtering
+            $allPending = $scheduleModel->getAllByStatus('pending');
+            $data['pendingCount'] = count($allPending);
+
+            // Fetch Grouped Data with Search Query
+            $data['groupedApprovedSchedules'] = $scheduleModel->getGroupedSchedulesByStatus('approved', $data['searchQuery']);
+            $data['groupedPendingSchedules'] = $scheduleModel->getGroupedSchedulesByStatus('pending', $data['searchQuery']);
+            
         } else {
+            // User View (Unchanged)
             $userId = $_SESSION['user_id'];
             $data['approvedSchedules'] = $scheduleModel->getByUser($userId, 'approved');
-            $data['pendingSchedules'] = $scheduleModel->getByUser($userId, 'pending');
+            $pendingRaw = $scheduleModel->getByUser($userId, 'pending');
+            $data['pendingCount'] = count($pendingRaw);
+            // Transform user pending to grouped format for consistency in view if desired, 
+            // but standard table is usually fine for single user. 
+            // We'll keep standard table for single user to save space.
+            $data['pendingSchedules'] = $pendingRaw; 
+            
             $data['userStats'] = $scheduleModel->getUserStats($userId);
             $data['selectedUserInfo'] = $userModel->findById($userId);
         }
