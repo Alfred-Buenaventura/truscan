@@ -5,10 +5,9 @@ class Schedule {
     private $db;
 
     public function __construct() {
-    $this->db = Database::getInstance(); // Reuses existing connection
-}
+        $this->db = Database::getInstance();
+    }
     
-    // --- NEW: Helper to get single schedule details (REQUIRED for Emails) ---
     public function findById($id) {
         $sql = "SELECT * FROM class_schedules WHERE id = ?";
         $stmt = $this->db->query($sql, [$id], "i");
@@ -59,7 +58,6 @@ class Schedule {
         return $this->db->query($sql, [$userId, $status], "is")->get_result()->fetch_all(MYSQLI_ASSOC);
     }
 
-    // UPDATED: Only fetch Pending schedules for ACTIVE users
     public function getAllByStatus($status) {
         $sql = "SELECT cs.*, u.first_name, u.last_name, u.faculty_id 
                 FROM class_schedules cs
@@ -70,16 +68,30 @@ class Schedule {
         return $this->db->query($sql, [$status], "s")->get_result()->fetch_all(MYSQLI_ASSOC);
     }
     
-    // UPDATED: Only fetch Approved schedules for ACTIVE users
-    public function getAllApprovedGroupedByUser() {
-        $sql = "SELECT cs.*, u.first_name, u.last_name, u.faculty_id 
+    // UPDATED: Now supports Search Query (ID, Name, Faculty ID)
+    public function getGroupedSchedulesByStatus($status, $search = null) {
+        $sql = "SELECT cs.*, u.first_name, u.last_name, u.faculty_id, u.id as u_id 
                 FROM class_schedules cs
                 JOIN users u ON cs.user_id = u.id
-                WHERE cs.status = 'approved' 
-                AND u.status = 'active'
-                ORDER BY u.last_name, cs.day_of_week, cs.start_time";
+                WHERE cs.status = ? 
+                AND u.status = 'active'";
         
-        $result = $this->db->query($sql)->get_result()->fetch_all(MYSQLI_ASSOC);
+        $params = [$status];
+        $types = "s";
+
+        if (!empty($search)) {
+            $searchTerm = "%$search%";
+            $sql .= " AND (u.faculty_id LIKE ? OR u.first_name LIKE ? OR u.last_name LIKE ? OR u.id = ?)";
+            $params[] = $searchTerm;
+            $params[] = $searchTerm;
+            $params[] = $searchTerm;
+            $params[] = $search; // Exact match for ID
+            $types .= "sssi";
+        }
+
+        $sql .= " ORDER BY u.last_name, cs.day_of_week, cs.start_time";
+        
+        $result = $this->db->query($sql, $params, $types)->get_result()->fetch_all(MYSQLI_ASSOC);
         
         $grouped = [];
         foreach ($result as $row) {
@@ -87,6 +99,7 @@ class Schedule {
             if (!isset($grouped[$userId])) {
                 $grouped[$userId] = [
                     'user_info' => [
+                        'id' => $row['u_id'],
                         'first_name' => $row['first_name'],
                         'last_name' => $row['last_name'],
                         'faculty_id' => $row['faculty_id']
@@ -102,16 +115,13 @@ class Schedule {
         return $grouped;
     }
 
-    // UPDATED: Stats should only count ACTIVE users' schedules
     public function getAdminStats() {
-        // 1. Total Approved Schedules (Filtered by active users)
         $sql_schedules = "SELECT COUNT(cs.id) as total 
                           FROM class_schedules cs 
                           JOIN users u ON cs.user_id = u.id 
                           WHERE cs.status='approved' AND u.status='active'";
         $schedules = $this->db->query($sql_schedules)->get_result()->fetch_assoc()['total'] ?? 0;
 
-        // 2. Total Unique Subjects (Filtered by active users)
         $sql_subjects = "SELECT COUNT(DISTINCT cs.subject) as total 
                          FROM class_schedules cs 
                          JOIN users u ON cs.user_id = u.id 
