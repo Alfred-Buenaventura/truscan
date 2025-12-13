@@ -5467,3 +5467,74 @@ html {
     color: #065f46 !important;            /* Emerald 800 */
     border: 1px solid #34d399 !important; /* Emerald 400 */
 }
+
+.ud-card-title.emerald-header {
+    background-color: #047857 !important; /* Standard Emerald Green Hex */
+    color: white !important;
+    border-bottom: 1px solid #047857; /* Slightly darker green border */
+}
+
+/* Ensure icons inside these headers are white */
+.ud-card-title.emerald-header i {
+    color: white !important;
+}
+
+/* =========================================
+   STYLISH USER DROPDOWN SELECT
+   ========================================= */
+
+/* Wrapper to hold the select and the custom arrow icon */
+.select-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+/* The actual select element */
+.stylish-select {
+    appearance: none; /* Remove default browser arrow */
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    
+    background-color: #ffffff;
+    border: 1px solid var(--emerald-200); /* Emerald border */
+    border-radius: 8px;
+    padding: 0.75rem 2.5rem 0.75rem 1rem; /* Extra right padding for arrow */
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--gray-700);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    width: 100%;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+}
+
+/* Focus state */
+.stylish-select:focus {
+    border-color: var(--emerald-500);
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15); /* Emerald glow */
+    outline: none;
+}
+
+/* Hover state */
+.stylish-select:hover {
+    border-color: var(--emerald-400);
+    background-color: var(--emerald-50); /* Very light green bg on hover */
+}
+
+/* The custom arrow icon (FontAwesome) */
+.select-arrow {
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--emerald-600);
+    pointer-events: none; /* Click passes through to select */
+    font-size: 0.9rem;
+    transition: transform 0.2s ease;
+}
+
+/* Rotate arrow when select is focused */
+.stylish-select:focus + .select-arrow {
+    transform: translateY(-50%) rotate(180deg);
+    color: var(--emerald-700);
+}
