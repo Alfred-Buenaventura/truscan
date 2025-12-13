@@ -23,15 +23,15 @@
         <?php if (Helper::isAdmin()): ?>
         <a href="create_account.php" class="nav-item">
             <i class="fa-solid fa-user-plus nav-icon"></i>
-            <span class="nav-text">Create Account</span>
+            <span class="nav-text">Create User Account</span>
         </a>
         <a href="create_admin.php" class="nav-item">
             <i class="fa-solid fa-user-shield nav-icon"></i>
-            <span class="nav-text">Create Admin</span>
+            <span class="nav-text">Create Admin Account</span>
         </a>
         <a href="complete_registration.php" class="nav-item">
              <i class="fa-solid fa-fingerprint nav-icon"></i>
-            <span class="nav-text">Complete Registration</span>
+            <span class="nav-text">Fingerprint Registration</span>
         </a>
         <?php endif; ?>
         
