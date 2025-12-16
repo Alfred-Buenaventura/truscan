@@ -8,6 +8,40 @@ class Schedule {
         $this->db = Database::getInstance();
     }
     
+    // --- NEW: Fetch Dynamic Rooms from DB ---
+    public function getRooms() {
+        $sql = "SELECT * FROM rooms ORDER BY name";
+        return $this->db->query($sql)->get_result()->fetch_all(MYSQLI_ASSOC);
+    }
+
+    // --- CONFLICT DETECTION LOGIC ---
+    // Checks if (StartA < EndB) and (EndA > StartB) for the same Day + Room
+    public function checkOverlap($day, $startTime, $endTime, $room, $excludeScheduleId = null) {
+        $sql = "SELECT cs.*, u.first_name, u.last_name, u.faculty_id 
+                FROM class_schedules cs
+                JOIN users u ON cs.user_id = u.id
+                WHERE cs.day_of_week = ? 
+                AND cs.room = ? 
+                AND cs.status = 'approved' 
+                AND cs.start_time < ? 
+                AND cs.end_time > ?
+                AND u.status = 'active'";
+        
+        // Logic: Overlap exists if Existing.Start < New.End AND Existing.End > New.Start
+        $params = [$day, $room, $endTime, $startTime];
+        $types = "ssss";
+
+        // If editing, exclude the schedule's own ID so it doesn't conflict with itself
+        if ($excludeScheduleId) {
+            $sql .= " AND cs.id != ?";
+            $params[] = $excludeScheduleId;
+            $types .= "i";
+        }
+
+        $stmt = $this->db->query($sql, $params, $types);
+        return $stmt->get_result()->fetch_assoc();
+    }
+
     public function findById($id) {
         $sql = "SELECT * FROM class_schedules WHERE id = ?";
         $stmt = $this->db->query($sql, [$id], "i");
@@ -68,7 +102,6 @@ class Schedule {
         return $this->db->query($sql, [$status], "s")->get_result()->fetch_all(MYSQLI_ASSOC);
     }
     
-    // UPDATED: Now supports Search Query (ID, Name, Faculty ID)
     public function getGroupedSchedulesByStatus($status, $search = null) {
         $sql = "SELECT cs.*, u.first_name, u.last_name, u.faculty_id, u.id as u_id 
                 FROM class_schedules cs
@@ -85,7 +118,7 @@ class Schedule {
             $params[] = $searchTerm;
             $params[] = $searchTerm;
             $params[] = $searchTerm;
-            $params[] = $search; // Exact match for ID
+            $params[] = $search; 
             $types .= "sssi";
         }
 
