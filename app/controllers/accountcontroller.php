@@ -86,7 +86,7 @@ class AccountController extends Controller {
             $userData = [
                 'faculty_id' => $facultyId,
                 'username' => strtolower($facultyId),
-                'password' => password_hash('DefaultPass123!', PASSWORD_DEFAULT),
+                'password' => password_hash('@defaultpass123', PASSWORD_DEFAULT), // UPDATED PASSWORD
                 'first_name' => clean($post['first_name']),
                 'last_name' => clean($post['last_name']),
                 'middle_name' => clean($post['middle_name']),
@@ -112,7 +112,7 @@ class AccountController extends Controller {
                         
                         <div style='background: #f9fafb; padding: 15px; border-radius: 5px; margin: 20px 0;'>
                             <p style='margin: 5px 0;'><strong>Username:</strong> " . $userData['username'] . "</p>
-                            <p style='margin: 5px 0;'><strong>Temporary Password:</strong> DefaultPass123!</p>
+                            <p style='margin: 5px 0;'><strong>Temporary Password:</strong> @defaultpass123</p>
                         </div>
                         
                         <p>For security purposes, please log in and change your password immediately.</p>
@@ -171,7 +171,7 @@ class AccountController extends Controller {
                 'role' => clean($data[4]), // Shifted index
                 'email' => clean($data[5]), // Shifted index
                 'phone' => $data[6] ?? '',  // Shifted index
-                'password' => password_hash('DefaultPass123!', PASSWORD_DEFAULT)
+                'password' => password_hash('@defaultpass123', PASSWORD_DEFAULT) // UPDATED PASSWORD
             ];
 
             $newId = $userModel->create($userData);
@@ -179,7 +179,7 @@ class AccountController extends Controller {
                 $imported++;
                 $notifModel->create($newId, "Welcome! Please change your password.", 'success');
                 // Updated Email to not show random username but ID
-                sendEmail($userData['email'], "Your BPC Account", "Welcome! Credentials: {$userData['username']} / DefaultPass123!");
+                sendEmail($userData['email'], "Your BPC Account", "Welcome! Credentials: {$userData['username']} / @defaultpass123");
             }
         }
         fclose($handle);

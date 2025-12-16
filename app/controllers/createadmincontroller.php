@@ -13,8 +13,8 @@ class AccountAdminController extends Controller {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // ... (validation code) ...
 
-            // SECURITY UPDATE: Stronger default password for Admins
-            $defaultPass = "Admin_2025!"; 
+            // SECURITY UPDATE: Updated default password for Admins
+            $defaultPass = "@adminpass123"; 
 
             $adminData = [
                 'faculty_id' => clean($_POST['faculty_id']),
