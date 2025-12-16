@@ -53,6 +53,82 @@ if (!function_exists('renderScheduleTable')) {
 }
 ?>
 
+<style>
+/* --- STYLES FOR THE "EMAIL-LIKE" MODAL --- */
+#conflictWarningModal .modal-content {
+    padding: 0; /* Reset padding to handle custom header */
+    border-radius: 8px;
+    overflow: hidden;
+    max-width: 550px;
+    border: 1px solid #e5e7eb;
+}
+
+#conflictWarningModal .email-like-header {
+    background: #dc2626; /* Red like the 'Decline' email */
+    color: white;
+    padding: 20px;
+    text-align: center;
+}
+
+#conflictWarningModal .email-like-header h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    color: white;
+    font-weight: 600;
+}
+
+#conflictWarningModal .email-like-body {
+    background: #f9fafb;
+    padding: 25px;
+    color: #374151;
+}
+
+#conflictWarningModal .warning-box {
+    background: #fef2f2;
+    border-left: 4px solid #dc2626;
+    padding: 15px;
+    margin-bottom: 20px;
+    color: #991b1b;
+    font-size: 0.95rem;
+}
+
+/* Table Style similar to Email */
+#conflictWarningModal .conflict-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border: 1px solid #e5e7eb;
+    margin-top: 15px;
+    font-size: 0.9rem;
+}
+
+#conflictWarningModal .conflict-table th {
+    background: #fef2f2; /* Light red/pink header */
+    color: #991b1b;
+    padding: 10px;
+    text-align: left;
+    border-bottom: 2px solid #fee2e2;
+    font-weight: 600;
+}
+
+#conflictWarningModal .conflict-table td {
+    padding: 10px;
+    border-bottom: 1px solid #e5e7eb;
+    color: #4b5563;
+}
+
+#conflictWarningModal .conflict-table td strong {
+    color: #111827;
+}
+
+#conflictWarningModal .email-like-footer {
+    background: #f3f4f6;
+    padding: 15px;
+    text-align: right;
+    border-top: 1px solid #e5e7eb;
+}
+</style>
+
 <div class="main-body">
     <?php if ($error): ?> <div class="alert alert-error"><?= htmlspecialchars($error) ?></div> <?php endif; ?>
     <?php if ($success): ?> <div class="alert alert-success"><?= htmlspecialchars($success) ?></div> <?php endif; ?>
@@ -308,7 +384,7 @@ if (!function_exists('renderScheduleTable')) {
             <h3>Add New Schedule</h3>
             <span class="close-btn" onclick="closeModal('addScheduleModal')">&times;</span>
         </div>
-        <form method="POST">
+        <form method="POST" id="addScheduleForm">
             <div class="modal-body">
                 <input type="hidden" name="add_schedule" value="1">
                 <?php if ($isAdmin && isset($selectedUserId)): ?>
@@ -324,7 +400,7 @@ if (!function_exists('renderScheduleTable')) {
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" onclick="closeModal('addScheduleModal')">Cancel</button>
-                <button type="submit" class="btn btn-primary">Save Schedules</button>
+                <button type="submit" class="btn btn-primary" id="btnSaveSchedule">Save Schedules</button>
             </div>
         </form>
     </div>
@@ -336,7 +412,7 @@ if (!function_exists('renderScheduleTable')) {
             <h3>Edit Schedule</h3>
             <span class="close-btn" onclick="closeModal('editScheduleModal')">&times;</span>
         </div>
-        <form method="POST">
+        <form method="POST" id="editScheduleForm">
             <div class="modal-body">
                 <input type="hidden" name="edit_schedule" value="1">
                 <input type="hidden" name="schedule_id_edit" id="editScheduleId">
@@ -362,13 +438,20 @@ if (!function_exists('renderScheduleTable')) {
                     <input type="time" name="end_time_edit" id="editEndTime" class="form-control" required>
                 </div>
                 <div class="form-group">
-                    <label>Room</label>
-                    <input type="text" name="room_edit" id="editRoom" class="form-control">
+                    <label>Room / Department</label>
+                    <select name="room_edit" id="editRoom" class="form-control" required>
+                        <option value="">Select Room...</option>
+                        <?php if(!empty($rooms)): ?>
+                            <?php foreach($rooms as $r): ?>
+                                <option value="<?= htmlspecialchars($r['name']) ?>"><?= htmlspecialchars($r['name']) ?></option>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                    </select>
                 </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" onclick="closeModal('editScheduleModal')">Cancel</button>
-                <button type="submit" class="btn btn-primary">Update Schedule</button>
+                <button type="submit" class="btn btn-primary" id="btnUpdateSchedule">Update Schedule</button>
             </div>
         </form>
     </div>
@@ -411,11 +494,65 @@ if (!function_exists('renderScheduleTable')) {
     </div>
 </div>
 
+<div id="conflictWarningModal" class="modal">
+    <div class="modal-content">
+        <div class="email-like-header">
+            <h2>⚠ Schedule Overlap</h2>
+        </div>
+        
+        <div class="email-like-body">
+            <div class="warning-box">
+                <strong>Notice:</strong> The schedule you are attempting to set conflicts with an existing approved schedule in the system.
+            </div>
+            
+            <p>Please review the conflicting schedule details below:</p>
+            
+            <table class="conflict-table">
+                <tr>
+                    <th>Conflict With</th>
+                    <td id="conflictUser"></td>
+                </tr>
+                <tr>
+                    <th>Faculty ID</th>
+                    <td id="conflictID"></td>
+                </tr>
+                <tr>
+                    <th>Day</th>
+                    <td id="conflictDay"></td>
+                </tr>
+                <tr>
+                    <th>Subject</th>
+                    <td id="conflictSubject"></td>
+                </tr>
+                <tr>
+                    <th>Time</th>
+                    <td id="conflictTime"></td>
+                </tr>
+                <tr>
+                    <th>Room</th>
+                    <td id="conflictRoom" style="font-weight:bold; color:#dc2626;"></td>
+                </tr>
+            </table>
+
+            <p style="margin-top: 15px; font-size: 0.9em; color: #6b7280;">
+                If you believe this is an error, please contact the administrator or the faculty member involved to resolve the overlap.
+            </p>
+        </div>
+        
+        <div class="email-like-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeModal('conflictWarningModal')">Close & Edit</button>
+        </div>
+    </div>
+</div>
+
 
 <script>
 // --- Variables to track pending actions ---
 let pendingActionType = '';
 let pendingActionId = null;
+
+// PASS PHP ROOMS TO JS safely
+const roomList = <?= json_encode(array_column($rooms, 'name')) ?>;
 
 // --- 1. BULK ACTIONS (Top Bar) ---
 function openBulkActionModal(action) {
@@ -565,6 +702,13 @@ function addScheduleRow() {
     const list = document.getElementById('schedule-entry-list');
     const div = document.createElement('div');
     div.className = 'schedule-entry-row';
+    
+    // Build Options String from PHP passed data
+    let options = '<option value="">Select Room...</option>';
+    roomList.forEach(r => {
+        options += `<option value="${r}">${r}</option>`;
+    });
+
     div.innerHTML = `
         <div class="form-group">
             <label>Day</label>
@@ -586,7 +730,9 @@ function addScheduleRow() {
         </div>
         <div class="form-group form-group-room">
             <label>Room / Department</label>
-            <input type="text" name="room[]" placeholder="Room or Dept" class="form-control">
+            <select name="room[]" class="form-control" required>
+                ${options}
+            </select>
         </div>
         <button type="button" class="btn btn-danger" onclick="this.parentElement.remove()" title="Remove">
             <i class="fa-solid fa-times"></i>
@@ -613,5 +759,109 @@ window.onclick = function(event) {
         }
     });
 };
+
+// --- CONFLICT CHECK LOGIC ---
+
+// Handle Add Form
+document.getElementById('addScheduleForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const form = this;
+    
+    // Collect data manually to build JSON structure
+    const schedules = [];
+    const days = form.querySelectorAll('select[name="day_of_week[]"]');
+    const subjects = form.querySelectorAll('input[name="subject[]"]');
+    const starts = form.querySelectorAll('input[name="start_time[]"]');
+    const ends = form.querySelectorAll('input[name="end_time[]"]');
+    const rooms = form.querySelectorAll('select[name="room[]"]');
+    
+    for(let i=0; i<days.length; i++) {
+        schedules.push({
+            day: days[i].value,
+            subject: subjects[i].value,
+            start: starts[i].value,
+            end: ends[i].value,
+            room: rooms[i].value
+        });
+    }
+
+    checkConflicts(schedules, form);
+});
+
+// Handle Edit Form
+document.getElementById('editScheduleForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const form = this;
+    
+    const schedule = [{
+        id: document.getElementById('editScheduleId').value,
+        day: document.getElementById('editDay').value,
+        subject: document.getElementById('editSubject').value,
+        start: document.getElementById('editStartTime').value,
+        end: document.getElementById('editEndTime').value,
+        room: document.getElementById('editRoom').value
+    }];
+
+    checkConflicts(schedule, form);
+});
+
+function checkConflicts(schedules, formToSubmit) {
+    const formData = new FormData();
+    formData.append('check_conflict', '1');
+    
+    if (schedules.length === 1 && schedules[0].id) {
+        // Edit mode
+        formData.append('id', schedules[0].id);
+        formData.append('day', schedules[0].day);
+        formData.append('start', schedules[0].start);
+        formData.append('end', schedules[0].end);
+        formData.append('room', schedules[0].room);
+    } else {
+        // Add mode
+        schedules.forEach((s, index) => {
+            formData.append(`schedules[${index}][day]`, s.day);
+            formData.append(`schedules[${index}][start]`, s.start);
+            formData.append(`schedules[${index}][end]`, s.end);
+            formData.append(`schedules[${index}][room]`, s.room);
+        });
+    }
+
+    fetch('schedule_management.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.has_conflict) {
+            const c = data.conflict_details;
+            
+            // POPULATE THE NEW MODAL FIELDS
+            document.getElementById('conflictUser').textContent = c.first_name + ' ' + c.last_name;
+            document.getElementById('conflictID').textContent = c.faculty_id;
+            document.getElementById('conflictDay').textContent = c.day_of_week;
+            document.getElementById('conflictSubject').textContent = c.subject;
+            document.getElementById('conflictTime').textContent = convertTime(c.start_time) + ' - ' + convertTime(c.end_time);
+            document.getElementById('conflictRoom').textContent = c.room;
+
+            openModal('conflictWarningModal');
+        } else {
+            // No conflict, proceed with real submission
+            formToSubmit.submit();
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        // Fallback: submit anyway if check fails? Or alert error?
+        // formToSubmit.submit(); 
+    });
+}
+
+function convertTime(timeStr) {
+    const [hours, minutes] = timeStr.split(':');
+    const h = parseInt(hours, 10);
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    const h12 = h % 12 || 12;
+    return `${h12}:${minutes} ${ampm}`;
+}
 </script>
 <?php require_once __DIR__ . '/partials/footer.php'; ?>
